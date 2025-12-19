@@ -7,6 +7,12 @@ export interface User {
   updatedAt: Date;
 }
 
+/* NEW: Auth result type */
+export interface AuthResult {
+  user: User;
+  token: string;
+}
+
 export interface AuthResponse {
   success: boolean;
   message?: string;

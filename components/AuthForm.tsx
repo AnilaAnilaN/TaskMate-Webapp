@@ -109,7 +109,7 @@ export default function AuthForm({ initialMode = 'login' }: { initialMode?: Auth
       setMessage({ type: 'success', text: data.message || 'Success!' });
 
       if (mode === 'login') {
-        setTimeout(() => router.push('/dashboard'), 1500);
+        setTimeout(() => router.push('/'), 1500);
       } else if (mode === 'signup') {
         setTimeout(() => setMode('login'), 2000);
       }
