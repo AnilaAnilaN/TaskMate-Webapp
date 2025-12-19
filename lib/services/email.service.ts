@@ -1,3 +1,4 @@
+// service/email.service.ts
 import nodemailer from 'nodemailer';
 
 interface EmailOptions {
@@ -59,7 +60,7 @@ class EmailService {
 
   async sendVerificationEmail(email: string, token: string): Promise<void> {
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
-    const verifyUrl = `${baseUrl}/api/auth/verify-email?token=${token}`;
+    const verifyUrl = `${baseUrl}/verify-email?token=${token}`;
 
     const html = `
       <!DOCTYPE html>
@@ -142,4 +143,3 @@ class EmailService {
 }
 
 export const emailService = new EmailService();
-
