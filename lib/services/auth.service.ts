@@ -1,10 +1,11 @@
+// AuthService - Business logic for user authentication.
 // ============================================
 // lib/services/auth.service.ts - Auth Business Logic
 // ============================================
 import crypto from 'crypto';
 import UserModel from '@/models/User.model';
 import type { SignupPayload, LoginPayload, User } from '@/types/auth.types';
-import { emailService } from './email.service';
+import { sendVerificationCode, sendPasswordResetEmail } from './email.service';
 import { validatePassword, validateEmail, validateName } from '@/lib/validations';
 
 class AuthService {
@@ -18,22 +19,22 @@ class AuthService {
       throw new Error('User with this email already exists');
     }
 
-    // Generate verification token
-    const verificationToken = crypto.randomBytes(32).toString('hex');
-    const verificationTokenExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+    // Generate verification code
+    const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+    const verificationCodeExpiry = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
 
     // Create user
     const user = await UserModel.create({
       name,
       email,
       password,
-      verificationToken,
-      verificationTokenExpiry,
+      verificationCode,
+      verificationCodeExpiry,
       emailVerified: false,
     });
 
     // Send verification email
-    await emailService.sendVerificationEmail(email, verificationToken, user._id.toString());
+    await sendVerificationCode(email, verificationCode);
 
     return { message: 'Account created successfully. Please check your email to verify your account.' };
   }
@@ -60,23 +61,26 @@ class AuthService {
     return user.toJSON() as User;
   }
 
-  async verifyEmail(token: string, userId: string): Promise<{ message: string }> {
-    const user = await UserModel.findById(userId).select(
-      '+verificationToken +verificationTokenExpiry'
+  async verifyCode(email: string, code: string): Promise<{ message: string }> {
+    const user = await UserModel.findOne({ email }).select(
+      '+verificationCode +verificationCodeExpiry'
     );
 
-    if (!user || !user.verificationToken || user.verificationTokenExpiry < new Date()) {
-      throw new Error('Invalid or expired verification token');
+    if (!user || !user.verificationCode || !user.verificationCodeExpiry) {
+      throw new Error('Invalid verification code or email.');
+    }
+    
+    if (user.verificationCodeExpiry < new Date()) {
+      throw new Error('Expired verification code. Please request a new one.');
     }
 
-    const isTokenValid = await user.compareVerificationToken(token);
-    if (!isTokenValid) {
-      throw new Error('Invalid or expired verification token');
+    if (code !== user.verificationCode) {
+      throw new Error('Invalid verification code.');
     }
 
     user.emailVerified = true;
-    user.verificationToken = undefined;
-    user.verificationTokenExpiry = undefined;
+    user.verificationCode = undefined;
+    user.verificationCodeExpiry = undefined;
     await user.save();
 
     return { message: 'Email verified successfully. You can now log in.' };
@@ -98,7 +102,7 @@ class AuthService {
     await user.save();
 
     // Send reset email
-    await emailService.sendPasswordResetEmail(email, resetToken, user._id.toString());
+    await sendPasswordResetEmail(email, resetToken, String(user._id));
 
     return { message: 'If an account exists with this email, a password reset link has been sent.' };
   }
@@ -128,3 +132,4 @@ class AuthService {
 }
 
 export const authService = new AuthService();
+// Added a comment to force TypeScript to re-evaluate this file.

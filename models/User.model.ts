@@ -1,5 +1,5 @@
 // models/User.model.ts
-import mongoose, { Schema, Model, Document, CallbackError } from 'mongoose';
+import mongoose, { Schema, Model, Document } from 'mongoose';
 import bcrypt from 'bcryptjs';
 
 export interface IUser extends Document {
@@ -7,8 +7,8 @@ export interface IUser extends Document {
   email: string;
   password: string;
   emailVerified: boolean;
-  verificationToken?: string;
-  verificationTokenExpiry?: Date;
+  verificationCode?: string;
+  verificationCodeExpiry?: Date;
   resetPasswordToken?: string;
   resetPasswordExpiry?: Date;
   createdAt: Date;
@@ -31,7 +31,7 @@ const UserSchema = new Schema<IUser>(
       unique: true,
       lowercase: true,
       trim: true,
-      match: [/^\S+@\S+\.\S+$/, 'Please provide a valid email'],
+      match: [/\S+@\S+\.\S+$/, 'Please provide a valid email'],
       index: true,
     },
     password: {
@@ -45,11 +45,11 @@ const UserSchema = new Schema<IUser>(
       default: false,
       index: true,
     },
-    verificationToken: {
+    verificationCode: {
       type: String,
       select: false,
     },
-    verificationTokenExpiry: {
+    verificationCodeExpiry: {
       type: Date,
       select: false,
     },
@@ -70,8 +70,8 @@ const UserSchema = new Schema<IUser>(
         delete ret._id;
         delete ret.__v;
         delete ret.password;
-        delete ret.verificationToken;
-        delete ret.verificationTokenExpiry;
+        delete ret.verificationCode;
+        delete ret.verificationCodeExpiry;
         delete ret.resetPasswordToken;
         delete ret.resetPasswordExpiry;
         return ret;
@@ -80,27 +80,25 @@ const UserSchema = new Schema<IUser>(
   }
 );
 
-// Pre-save hook to hash password
+// Pre-save hook: Hash password only if modified (promise-style, modern way)
 UserSchema.pre('save', async function () {
-  // Only hash if password is modified
-  if (!this.isModified('password')) {
-    return;
-  }
+  if (!this.isModified('password')) return;
 
   const salt = await bcrypt.genSalt(12);
   this.password = await bcrypt.hash(this.password, salt);
 });
 
-// Method to compare passwords
+// Instance method to compare passwords
 UserSchema.methods.comparePassword = async function (
   candidatePassword: string
 ): Promise<boolean> {
   return bcrypt.compare(candidatePassword, this.password);
 };
 
-// Export the model
-const UserModel =
-  (mongoose.models.User as Model<IUser>) ||
-  mongoose.model<IUser>('User', UserSchema);
+// Safe model export to avoid hot-reload issues in Next.js
+const UserModel: Model<IUser> =
+  mongoose.models.User
+    ? (mongoose.models.User as Model<IUser>)
+    : mongoose.model<IUser>('User', UserSchema);
 
 export default UserModel;

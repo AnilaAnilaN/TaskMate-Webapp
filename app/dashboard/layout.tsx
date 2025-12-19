@@ -4,9 +4,9 @@ import { redirect } from 'next/navigation';
 import Sidebar from '@/components/dashboard/Sidebar';
 import Topbar from '@/components/dashboard/Topbar';
 
-export default function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const cookieStore = cookies(); // no await
-  const token = cookieStore.get('token');
+export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
+  const cookieStore = await cookies(); 
+  const token = cookieStore.get('auth-token')?.value;
 
   if (!token) {
     redirect('/auth');

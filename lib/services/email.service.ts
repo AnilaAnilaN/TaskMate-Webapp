@@ -1,4 +1,4 @@
-// service/email.service.ts
+// lib/services/email.service.ts
 import nodemailer from 'nodemailer';
 
 interface EmailOptions {
@@ -7,139 +7,174 @@ interface EmailOptions {
   html: string;
 }
 
-class EmailService {
-  private transporter: nodemailer.Transporter | null = null;
-  private from: string;
-  private isConfigured: boolean;
+const isConfigured = !!(
+  process.env.SMTP_HOST &&
+  process.env.SMTP_USER &&
+  process.env.SMTP_PASS
+);
 
-  constructor() {
-    this.isConfigured = !!(
-      process.env.SMTP_HOST &&
-      process.env.SMTP_USER &&
-      process.env.SMTP_PASS
-    );
+if (!isConfigured) {
+  console.warn('⚠️ SMTP credentials not configured. Email sending will fail.');
+}
 
-    if (!this.isConfigured) {
-      console.warn('⚠️  SMTP credentials not configured. Email sending will fail.');
-    }
+const from = `"TaskMate" <${process.env.SMTP_USER || 'noreply@taskmate.app'}>`;
 
-    this.from = `"TaskManager" <${process.env.SMTP_USER || 'noreply@taskmanager.com'}>`;
+let transporter: nodemailer.Transporter | null = null;
 
-    if (this.isConfigured) {
-      this.transporter = nodemailer.createTransport({
-        host: process.env.SMTP_HOST,
-        port: Number(process.env.SMTP_PORT) || 587,
-        secure: process.env.SMTP_SECURE === 'true',
-        auth: {
-          user: process.env.SMTP_USER,
-          pass: process.env.SMTP_PASS,
-        },
-      });
-    }
+if (isConfigured) {
+  transporter = nodemailer.createTransport({
+    host: process.env.SMTP_HOST,
+    port: Number(process.env.SMTP_PORT) || 587,
+    secure: process.env.SMTP_SECURE === 'true',
+    auth: {
+      user: process.env.SMTP_USER,
+      pass: process.env.SMTP_PASS,
+    },
+    tls: {
+      rejectUnauthorized: false,
+    },
+  });
+}
+
+async function sendEmail({ to, subject, html }: EmailOptions): Promise<void> {
+  if (!isConfigured || !transporter) {
+    console.error('❌ Cannot send email: SMTP not configured');
+    throw new Error('Email service not configured');
   }
 
-  async sendEmail({ to, subject, html }: EmailOptions): Promise<void> {
-    if (!this.isConfigured || !this.transporter) {
-      console.error('❌ Cannot send email: SMTP not configured');
-      throw new Error('Email service not configured');
-    }
-
-    try {
-      const info = await this.transporter.sendMail({
-        from: this.from,
-        to,
-        subject,
-        html,
-      });
-      console.log(`✅ Email sent to ${to} - Message ID: ${info.messageId}`);
-    } catch (error: any) {
-      console.error('❌ Failed to send email:', error);
-      throw new Error(`Failed to send email: ${error.message}`);
-    }
-  }
-
-  async sendVerificationEmail(email: string, token: string): Promise<void> {
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
-    const verifyUrl = `${baseUrl}/verify-email?token=${token}`;
-
-    const html = `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <meta charset="utf-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        </head>
-        <body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f5f5f5;">
-          <table role="presentation" style="width: 100%; border-collapse: collapse;">
-            <tr>
-              <td style="padding: 40px 0; text-align: center;">
-                <table role="presentation" style="width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px;">
-                  <tr>
-                    <td style="padding: 40px 30px; text-align: center;">
-                      <h1 style="margin: 0 0 20px 0; color: #4f46e5; font-size: 28px;">📋 TaskManager</h1>
-                      <h2 style="margin: 0 0 20px 0; color: #333;">Verify Your Email</h2>
-                      <p style="margin: 0 0 30px 0; color: #666; font-size: 16px;">Click the button below to verify your email address.</p>
-                      <a href="${verifyUrl}" style="display: inline-block; padding: 14px 32px; background: #4f46e5; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: 600;">Verify Email</a>
-                      <p style="margin: 30px 0 0 0; color: #999; font-size: 14px;">Or copy this link: ${verifyUrl}</p>
-                      <p style="margin: 20px 0 0 0; padding: 15px; background-color: #fef3c7; color: #92400e; font-size: 14px;">⏰ This link expires in 24 hours</p>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td style="padding: 20px 30px; text-align: center; border-top: 1px solid #eee;">
-                      <p style="margin: 0; color: #999; font-size: 12px;">© ${new Date().getFullYear()} TaskManager</p>
-                    </td>
-                  </tr>
-                </table>
-              </td>
-            </tr>
-          </table>
-        </body>
-      </html>
-    `;
-
-    await this.sendEmail({ to: email, subject: 'Verify Your Email - TaskManager', html });
-  }
-
-  async sendPasswordResetEmail(email: string, token: string): Promise<void> {
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
-    const resetUrl = `${baseUrl}/reset-password?token=${token}`;
-
-    const html = `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <meta charset="utf-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        </head>
-        <body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f5f5f5;">
-          <table role="presentation" style="width: 100%; border-collapse: collapse;">
-            <tr>
-              <td style="padding: 40px 0; text-align: center;">
-                <table role="presentation" style="width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px;">
-                  <tr>
-                    <td style="padding: 40px 30px; text-align: center;">
-                      <h1 style="margin: 0 0 20px 0; color: #dc2626; font-size: 28px;">🔐 Reset Password</h1>
-                      <p style="margin: 0 0 30px 0; color: #666; font-size: 16px;">Click the button below to reset your password.</p>
-                      <a href="${resetUrl}" style="display: inline-block; padding: 14px 32px; background: #dc2626; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: 600;">Reset Password</a>
-                      <p style="margin: 30px 0 0 0; color: #999; font-size: 14px;">Or copy this link: ${resetUrl}</p>
-                      <p style="margin: 20px 0 0 0; padding: 15px; background-color: #fee2e2; color: #991b1b; font-size: 14px;">🔒 This link expires in 1 hour</p>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td style="padding: 20px 30px; text-align: center; border-top: 1px solid #eee;">
-                      <p style="margin: 0; color: #999; font-size: 12px;">© ${new Date().getFullYear()} TaskManager</p>
-                    </td>
-                  </tr>
-                </table>
-              </td>
-            </tr>
-          </table>
-        </body>
-      </html>
-    `;
-
-    await this.sendEmail({ to: email, subject: 'Reset Your Password - TaskManager', html });
+  try {
+    const info = await transporter.sendMail({
+      from,
+      to,
+      subject,
+      html,
+    });
+    console.log(`✅ Email sent to ${to} - Message ID: ${info.messageId}`);
+  } catch (error: any) {
+    console.error('❌ Failed to send email:', error);
+    throw new Error(`Failed to send email: ${error.message}`);
   }
 }
 
-export const emailService = new EmailService();
+/**
+ * Send 6-digit verification code
+ */
+export async function sendVerificationCode(email: string, code: string): Promise<void> {
+  const html = `
+    <!DOCTYPE html>
+    <html lang="en">
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Your TaskMate Verification Code</title>
+      </head>
+      <body style="margin: 0; padding: 0; font-family: Arial, Helvetica, sans-serif; background-color: #f9fafb;">
+        <table role="presentation" style="width: 100%; border-collapse: collapse;">
+          <tr>
+            <td style="padding: 40px 20px; text-align: center;">
+              <table role="presentation" style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08);">
+                <tr>
+                  <td style="padding: 40px 30px; text-align: center;">
+                    <div style="font-size: 48px; margin-bottom: 16px;">😊</div>
+                    <h1 style="margin: 0 0 20px 0; color: #4f46e5; font-size: 32px; font-weight: bold;">TaskMate</h1>
+                    <h2 style="margin: 0 0 24px 0; color: #1f2937; font-size: 24px;">Your Verification Code</h2>
+                    <p style="margin: 0 0 32px 0; color: #6b7280; font-size: 16px; line-height: 1.6;">
+                      Please use the following code to verify your email and complete your registration.
+                    </p>
+                    
+                    <div style="padding: 20px 40px; background-color: #eef2ff; border-radius: 10px; font-size: 36px; font-weight: bold; letter-spacing: 12px; color: #4f46e5; display: inline-block; margin: 20px 0; border: 2px dashed #c7d2fe;">
+                      ${code}
+                    </div>
+
+                    <p style="margin: 32px 0 0 0; color: #9ca3af; font-size: 15px;">
+                      ⏰ This code expires in <strong>15 minutes</strong>
+                    </p>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding: 24px 30px; text-align: center; background-color: #f9fafb; border-top: 1px solid #e5e7eb;">
+                    <p style="margin: 0; color: #9ca3af; font-size: 12px;">
+                      © ${new Date().getFullYear()} TaskMate. All rights reserved.
+                    </p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+      </body>
+    </html>
+  `;
+
+  await sendEmail({
+    to: email,
+    subject: 'Your TaskMate Verification Code',
+    html,
+  });
+}
+
+/**
+ * Send password reset link
+ */
+export async function sendPasswordResetEmail(email: string, token: string): Promise<void> {
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+  const resetUrl = `${baseUrl}/reset-password?token=${token}`;
+
+  const html = `
+    <!DOCTYPE html>
+    <html lang="en">
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Reset Your TaskMate Password</title>
+      </head>
+      <body style="margin: 0; padding: 0; font-family: Arial, Helvetica, sans-serif; background-color: #f9fafb;">
+        <table role="presentation" style="width: 100%; border-collapse: collapse;">
+          <tr>
+            <td style="padding: 40px 20px; text-align: center;">
+              <table role="presentation" style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08);">
+                <tr>
+                  <td style="padding: 40px 30px; text-align: center;">
+                    <div style="font-size: 48px; margin-bottom: 16px;">🔐</div>
+                    <h1 style="margin: 0 0 20px 0; color: #dc2626; font-size: 32px; font-weight: bold;">TaskMate</h1>
+                    <h2 style="margin: 0 0 24px 0; color: #1f2937; font-size: 24px;">Reset Your Password</h2>
+                    <p style="margin: 0 0 32px 0; color: #6b7280; font-size: 16px; line-height: 1.6;">
+                      You requested to reset your password. Click the button below to create a new one.
+                    </p>
+                    
+                    <a href="${resetUrl}" style="display: inline-block; padding: 16px 40px; background-color: #dc2626; color: #ffffff; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 18px;">
+                      Reset Password
+                    </a>
+
+                    <p style="margin: 32px 0 0 0; color: #9ca3af; font-size: 15px;">
+                      Or copy and paste this link:
+                      <br><br>
+                      <span style="word-break: break-all; color: #6b7280;">${resetUrl}</span>
+                    </p>
+
+                    <p style="margin: 32px 0 0 0; color: #9ca3af; font-size: 15px;">
+                      🔒 This link expires in <strong>1 hour</strong>
+                    </p>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding: 24px 30px; text-align: center; background-color: #f9fafb; border-top: 1px solid #e5e7eb;">
+                    <p style="margin: 0; color: #9ca3af; font-size: 12px;">
+                      © ${new Date().getFullYear()} TaskMate. All rights reserved.
+                    </p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+      </body>
+    </html>
+  `;
+
+  await sendEmail({
+    to: email,
+    subject: 'Reset Your TaskMate Password',
+    html,
+  });
+}

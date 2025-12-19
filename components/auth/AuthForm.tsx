@@ -109,9 +109,9 @@ export default function AuthForm({ initialMode = 'login' }: { initialMode?: Auth
       setMessage({ type: 'success', text: data.message || 'Success!' });
 
       if (mode === 'login') {
-        setTimeout(() => router.push('/'), 1500);
+        router.push('/dashboard');
       } else if (mode === 'signup') {
-        setTimeout(() => setMode('login'), 2000);
+        router.push(`/verify-email?email=${formData.email}`);
       }
     } catch (error: any) {
       setMessage({ type: 'error', text: error.message || 'An error occurred' });

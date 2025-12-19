@@ -64,9 +64,9 @@ function ResetPasswordForm() {
       setMessage(data.message || 'Password reset successfully!');
       setMessageType('success');
 
-      setTimeout(() => router.push('/auth'), 2000);
+      setTimeout(() => router.push('/auth'), 3000);
     } catch (error: any) {
-      setMessage(error.message || 'An error occurred');
+      setMessage(error.message || 'An error occurred. Please try again.');
       setMessageType('error');
     } finally {
       setLoading(false);
@@ -83,18 +83,18 @@ function ResetPasswordForm() {
               <div className="w-10 h-10 bg-yellow-400 rounded-xl flex items-center justify-center">
                 <span className="text-2xl">🔐</span>
               </div>
-              <span className="text-2xl font-bold text-gray-900">Organizo</span>
+              <span className="text-2xl font-bold text-gray-900">TaskMate</span>
             </div>
           </div>
 
           {/* Title */}
           <div className="mb-6">
-            <h2 className="text-2xl font-bold text-gray-900">Reset password</h2>
-            <p className="text-gray-500 text-sm mt-1">Enter your new password below</p>
+            <h2 className="text-2xl font-bold text-gray-900">Reset Your Password</h2>
+            <p className="text-gray-500 text-sm mt-1">Enter a strong new password below</p>
           </div>
 
           {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-5">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 New Password
@@ -107,8 +107,8 @@ function ResetPasswordForm() {
                 className="w-full px-4 py-3 border border-gray-200 bg-gray-50 rounded-xl focus:ring-2 focus:ring-yellow-400 focus:border-transparent outline-none transition"
                 required
               />
-              <p className="text-xs text-gray-500 mt-1">
-                Min 8 chars with uppercase, lowercase & number
+              <p className="text-xs text-gray-500 mt-2">
+                Minimum 8 characters • Uppercase • Lowercase • Number
               </p>
             </div>
 
@@ -129,26 +129,26 @@ function ResetPasswordForm() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 bg-yellow-400 hover:bg-yellow-500 text-gray-900 rounded-xl font-semibold disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+              className="w-full py-4 bg-yellow-400 hover:bg-yellow-500 disabled:bg-gray-300 text-gray-900 rounded-xl font-bold disabled:cursor-not-allowed transition-all"
             >
               {loading ? 'Resetting...' : 'Reset Password'}
             </button>
 
             {message && (
-              <div className={`p-4 rounded-xl ${
+              <div className={`p-4 rounded-xl text-center ${
                 messageType === 'success' 
                   ? 'bg-green-50 border border-green-200 text-green-800' 
                   : 'bg-red-50 border border-red-200 text-red-800'
               }`}>
-                <p className="text-sm font-medium flex items-center">
-                  <span className="text-lg mr-2">{messageType === 'success' ? '✅' : '⚠️'}</span>
+                <p className="text-sm font-medium flex items-center justify-center gap-2">
+                  <span className="text-lg">{messageType === 'success' ? '✅' : '⚠️'}</span>
                   {message}
                 </p>
               </div>
             )}
           </form>
 
-          <div className="mt-6 text-center">
+          <div className="mt-8 text-center">
             <button
               onClick={() => router.push('/auth')}
               className="text-sm text-gray-600 hover:text-gray-900 font-medium"
@@ -176,10 +176,3 @@ export default function ResetPasswordPage() {
     </Suspense>
   );
 }
-
-// app/auth/page.tsx - Update to match theme
-// Just change the background from gradient to solid:
-// className="min-h-screen grid place-items-center bg-gray-50 p-6"
-
-// app/dashboard/page.tsx - Create this file
-// Copy the Dashboard component from the artifact above
