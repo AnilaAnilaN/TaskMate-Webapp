@@ -1,39 +1,33 @@
-import { NextResponse } from "next/server";
-import bcrypt from "bcryptjs";
-import { dbConnect } from "@/lib/dbConnect";
-import User from "@/models/User";
+// app/api/auth/login/route.ts
+// ===========================================
 
-export async function POST(request: Request) {
-  let body: any;
-  try {
-    body = await request.json();
-  } catch (err) {
-    return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
-  }
+import { NextRequest } from 'next/server';
+import { dbConnect } from '@/lib/db/mongoose';
+import { authService } from '@/lib/services/auth.service';
+import { validateEmail } from '@/lib/validations';
+import {
+  successResponse,
+  handleApiError,
+} from '@/lib/utils/api-response';
+import type { LoginPayload } from '@/types/auth.types';
 
-  const { email, password } = body || {};
-  if (!email || !password) {
-    return NextResponse.json({ error: "Missing fields" }, { status: 400 });
-  }
-
-  try {
+export async function POST(request: NextRequest) {
+  return handleApiError(async () => {
     await dbConnect();
 
-    const user = await User.findOne({ email });
-    if (!user) return NextResponse.json({ error: "No user found" }, { status: 404 });
+    const body: LoginPayload = await request.json();
+    const { email, password } = body;
 
-    if (!user.emailVerified) {
-      return NextResponse.json({ error: "Email not verified" }, { status: 401 });
-    }
+    validateEmail(email);
+    if (!password) throw new Error('Password is required');
 
-    const isValid = await bcrypt.compare(password, user.password);
-    if (!isValid) {
-      return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
-    }
+    const user = await authService.login({ email, password });
 
-    return NextResponse.json({ message: "Login successful" });
-  } catch (err: any) {
-    console.error("Login error:", err);
-    return NextResponse.json({ error: (err && err.message) || "Internal server error" }, { status: 500 });
-  }
+    const response = successResponse({
+      message: 'Login successful',
+      user,
+    });
+
+    return response;
+  });
 }

@@ -1,27 +1,29 @@
-import { NextResponse } from "next/server";
-import { dbConnect } from "@/lib/dbConnect";
-import User from "@/models/User";
+import { NextRequest } from 'next/server';
+import { redirect } from 'next/navigation';
+import { dbConnect } from '@/lib/db/mongoose';
+import { authService } from '@/lib/services/auth.service';
 
-export async function GET(request: Request) {
-  const url = new URL(request.url);
-  const token = url.searchParams.get("token");
-  if (!token) return NextResponse.json({ error: "Invalid token" }, { status: 400 });
+export async function GET(request: NextRequest) {
+  try {
+    await dbConnect();
 
-  await dbConnect();
+    const { searchParams } = new URL(request.url);
+    const token = searchParams.get('token');
 
-  const user = await User.findOne({ verificationToken: token });
-  if (!user) {
-    return NextResponse.redirect(new URL(`/verify-email?status=invalid`, request.url));
+    if (!token) {
+      return redirect('/verify-email?status=invalid');
+    }
+
+    try {
+      await authService.verifyEmail(token);
+      return redirect('/verify-email?status=success');
+    } catch (error: any) {
+      if (error.message.includes('expired')) {
+        return redirect('/verify-email?status=expired');
+      }
+      return redirect('/verify-email?status=invalid');
+    }
+  } catch (error) {
+    return redirect('/verify-email?status=invalid');
   }
-
-  if (!user.tokenExpiry || user.tokenExpiry < new Date()) {
-    return NextResponse.redirect(new URL(`/verify-email?status=expired`, request.url));
-  }
-
-  user.emailVerified = true;
-  user.verificationToken = "";
-  user.tokenExpiry = new Date();
-  await user.save();
-
-  return NextResponse.redirect(new URL(`/verify-email?status=success`, request.url));
 }
