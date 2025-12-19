@@ -146,7 +146,7 @@ export default function AuthForm({ initialMode = 'login' }: { initialMode?: Auth
           <div className="w-10 h-10 bg-yellow-400 rounded-xl flex items-center justify-center">
             <span className="text-2xl">😊</span>
           </div>
-          <span className="text-2xl font-bold text-gray-900">Organizo</span>
+          <span className="text-2xl font-bold text-gray-900">TaskMate</span>
         </div>
       </div>
 
@@ -187,7 +187,6 @@ export default function AuthForm({ initialMode = 'login' }: { initialMode?: Auth
         </h2>
         <p className="text-gray-500 text-sm mt-1">
           {mode === 'login' && 'Please enter your details'}
-          {mode === 'signup' && 'Start organizing your tasks'}
           {mode === 'forgot' && "We'll send you a reset link"}
         </p>
       </div>
