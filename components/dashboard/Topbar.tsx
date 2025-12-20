@@ -1,8 +1,35 @@
+// ==========================================
+// 1. components/dashboard/Topbar.tsx
+// ==========================================
 'use client';
 
 import { Search, Plus, Bell } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
 
 export default function Topbar() {
+  const router = useRouter();
+  const [userName, setUserName] = useState('User');
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch('/api/profile', {
+      cache: 'no-store', // ⭐ THIS IS THE FIX
+    })
+      .then(res => res.json())
+      .then(data => {
+        if (data.profile?.name) {
+          setUserName(data.profile.name);
+        }
+      })
+      .catch(err => console.error('Failed to fetch user'))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const getInitials = (name: string) => {
+    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+  };
+
   return (
     <div className="flex items-center justify-between mb-8">
       {/* Search */}
@@ -26,7 +53,15 @@ export default function Topbar() {
         <button className="p-2 hover:bg-gray-100 rounded-xl">
           <Bell className="w-5 h-5 text-gray-600" />
         </button>
-        <div className="w-9 h-9 bg-gray-200 rounded-full"></div>
+        
+        {/* Clickable Profile Avatar */}
+        <button
+          onClick={() => router.push('/profile')}
+          className="w-9 h-9 bg-yellow-400 rounded-full flex items-center justify-center font-bold text-gray-900 text-sm hover:bg-yellow-500 hover:scale-105 transition-all cursor-pointer"
+          title="View Profile"
+        >
+          {loading ? '...' : getInitials(userName)}
+        </button>
       </div>
     </div>
   );

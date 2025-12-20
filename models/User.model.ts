@@ -11,6 +11,8 @@ export interface IUser extends Document {
   verificationCodeExpiry?: Date;
   resetPasswordToken?: string;
   resetPasswordExpiry?: Date;
+  profileImage?: string | null;
+  bio?: string;
   createdAt: Date;
   updatedAt: Date;
   comparePassword(candidatePassword: string): Promise<boolean>;
@@ -36,7 +38,7 @@ const UserSchema = new Schema(
     },
     password: {
       type: String,
-      required: function(this: IUser) {
+      required: function (this: IUser) {
         // Only require password if it's a new document OR if password is being modified
         return this.isNew || this.isModified('password');
       },
@@ -64,6 +66,15 @@ const UserSchema = new Schema(
       type: Date,
       select: false,
     },
+    profileImage: {
+      type: String,
+      default: null,
+    },
+    bio: {
+      type: String,
+      default: '',
+      maxlength: [500, 'Bio cannot exceed 500 characters'],
+    },
   },
   {
     timestamps: true,
@@ -86,7 +97,7 @@ const UserSchema = new Schema(
 // Pre-save hook: Hash password only if modified
 UserSchema.pre('save', async function (this: IUser) {
   if (!this.isModified('password')) return;
-  
+
   const salt = await bcrypt.genSalt(12);
   this.password = await bcrypt.hash(this.password, salt);
 });

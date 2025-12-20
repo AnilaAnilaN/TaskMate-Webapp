@@ -1,17 +1,13 @@
-// dashboard/layout.tsx
-import { cookies } from 'next/headers';
-import { redirect } from 'next/navigation';
+// app/dashboard/layout.tsx
 import Sidebar from '@/components/dashboard/Sidebar';
 import Topbar from '@/components/dashboard/Topbar';
 
-export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const cookieStore = await cookies(); 
-  const token = cookieStore.get('auth-token')?.value;
-
-  if (!token) {
-    redirect('/auth');
-  }
-
+export default function DashboardLayout({ 
+  children 
+}: { 
+  children: React.ReactNode 
+}) {
+  // NO redirect here - middleware handles it
   return (
     <div className="flex h-screen bg-gray-50">
       <Sidebar />

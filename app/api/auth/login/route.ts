@@ -1,43 +1,44 @@
 // app/api/auth/login/route.ts
-import { NextRequest } from 'next/server';
-import { cookies } from 'next/headers';
+import { NextRequest, NextResponse } from 'next/server';
 import { dbConnect } from '@/lib/db/mongoose';
-import { authService } from '@/lib/services/auth.service';
-import { validateEmail } from '@/lib/validations';
-import { successResponse, handleApiError } from '@/lib/utils/api-response';
-import type { LoginPayload } from '@/types/auth.types';
+import UserModel from '@/models/User.model';
+import jwt from 'jsonwebtoken';
 
 export async function POST(request: NextRequest) {
-  return handleApiError(async () => {
+  try {
     await dbConnect();
 
-    const body: LoginPayload = await request.json();
-    const { email, password } = body;
+    const { email, password } = await request.json();
 
-    // Validation
-    validateEmail(email);
-    if (!password) {
-      throw new Error('Password is required');
+    const user = await UserModel.findOne({ email: email.toLowerCase() }).select('+password');
+    
+    if (!user || !user.emailVerified) {
+      return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
     }
 
-    // Login and get JWT + user data
-    const { user, token } = await authService.login({ email, password });
+    const isValid = await user.comparePassword(password);
+    if (!isValid) {
+      return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
+    }
 
-    // Set secure HTTP-only cookie
-    const cookieStore = await cookies();
-    cookieStore.set({
-      name: 'auth-token',
-      value: token,
+    const token = jwt.sign({ userId: user._id.toString() }, process.env.JWT_SECRET!, { expiresIn: '7d' });
+
+    const response = NextResponse.json({
+      success: true,
+      user: { id: user._id, name: user.name, email: user.email },
+    });
+
+    response.cookies.set('auth-token', token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
       path: '/',
-      maxAge: 60 * 60 * 24 * 7, // 7 days (optional, recommended)
+      maxAge: 604800,
     });
 
-    return successResponse({
-      message: 'Login successful',
-      user,
-    });
-  });
+    console.log('✅ COOKIE SET:', token.substring(0, 20));
+
+    return response;
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
 }
