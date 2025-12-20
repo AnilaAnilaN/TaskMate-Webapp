@@ -16,7 +16,7 @@ export interface IUser extends Document {
   comparePassword(candidatePassword: string): Promise<boolean>;
 }
 
-const UserSchema = new Schema<IUser>(
+const UserSchema = new Schema(
   {
     name: {
       type: String,
@@ -36,7 +36,10 @@ const UserSchema = new Schema<IUser>(
     },
     password: {
       type: String,
-      required: [true, 'Password is required'],
+      required: function(this: IUser) {
+        // Only require password if it's a new document OR if password is being modified
+        return this.isNew || this.isModified('password');
+      },
       minlength: [8, 'Password must be at least 8 characters'],
       select: false,
     },
@@ -80,10 +83,10 @@ const UserSchema = new Schema<IUser>(
   }
 );
 
-// Pre-save hook: Hash password only if modified (promise-style, modern way)
-UserSchema.pre('save', async function () {
+// Pre-save hook: Hash password only if modified
+UserSchema.pre('save', async function (this: IUser) {
   if (!this.isModified('password')) return;
-
+  
   const salt = await bcrypt.genSalt(12);
   this.password = await bcrypt.hash(this.password, salt);
 });
@@ -96,9 +99,8 @@ UserSchema.methods.comparePassword = async function (
 };
 
 // Safe model export to avoid hot-reload issues in Next.js
-const UserModel: Model<IUser> =
-  mongoose.models.User
-    ? (mongoose.models.User as Model<IUser>)
-    : mongoose.model<IUser>('User', UserSchema);
+const UserModel: Model<IUser> = mongoose.models.User
+  ? (mongoose.models.User as Model<IUser>)
+  : mongoose.model<IUser>('User', UserSchema);
 
 export default UserModel;

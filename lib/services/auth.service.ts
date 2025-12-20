@@ -117,7 +117,7 @@ class AuthService {
       throw new Error('Invalid or expired reset token');
     }
 
-    const isTokenValid = await user.compareResetPasswordToken(token);
+    const isTokenValid = token === user.resetPasswordToken;
     if (!isTokenValid) {
         throw new Error('Invalid or expired reset token');
     }
@@ -132,4 +132,4 @@ class AuthService {
 }
 
 export const authService = new AuthService();
-// Added a comment to force TypeScript to re-evaluate this file.
+

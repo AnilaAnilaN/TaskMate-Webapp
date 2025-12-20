@@ -115,7 +115,7 @@ export default function Dashboard() {
             <div className="w-10 h-10 bg-yellow-400 rounded-xl flex items-center justify-center">
               <span className="text-xl">😊</span>
             </div>
-            <span className="font-semibold text-xl text-gray-900">Organizo</span>
+            <span className="font-semibold text-xl text-gray-900">TaskMate</span>
           </div>
 
           <nav className="space-y-1">

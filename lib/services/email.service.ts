@@ -116,9 +116,9 @@ export async function sendVerificationCode(email: string, code: string): Promise
 /**
  * Send password reset link
  */
-export async function sendPasswordResetEmail(email: string, token: string): Promise<void> {
+export async function sendPasswordResetEmail(email: string, token: string, userId: string): Promise<void> {
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
-  const resetUrl = `${baseUrl}/reset-password?token=${token}`;
+  const resetUrl = `${baseUrl}/reset-password?token=${token}&userId=${userId}`;
 
   const html = `
     <!DOCTYPE html>

@@ -9,6 +9,7 @@ function ResetPasswordForm() {
   const router = useRouter();
   
   const [token, setToken] = useState('');
+  const [userId, setUserId] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -17,8 +18,10 @@ function ResetPasswordForm() {
 
   useEffect(() => {
     const tokenParam = searchParams?.get('token');
-    if (tokenParam) {
+    const userIdParam = searchParams?.get('userId');
+    if (tokenParam && userIdParam) {
       setToken(tokenParam);
+      setUserId(userIdParam);
     } else {
       router.push('/auth');
     }
@@ -52,7 +55,7 @@ function ResetPasswordForm() {
       const response = await fetch('/api/auth/reset-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token, newPassword: password }),
+        body: JSON.stringify({ token, userId, newPassword: password }),
       });
 
       const data = await response.json();
