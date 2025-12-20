@@ -1,5 +1,3 @@
-// ==========================================
-// 5. CATEGORY API ROUTES
 // app/api/categories/route.ts
 // ==========================================
 import { NextRequest, NextResponse } from 'next/server';
@@ -7,7 +5,6 @@ import { dbConnect } from '@/lib/db/mongoose';
 import { categoryService } from '@/lib/services/category.service';
 import { verifyToken } from '@/lib/auth/jwt';
 
-// GET - Get all categories
 export async function GET(request: NextRequest) {
   try {
     await dbConnect();
@@ -26,7 +23,6 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST - Create category
 export async function POST(request: NextRequest) {
   try {
     await dbConnect();

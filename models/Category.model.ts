@@ -1,5 +1,3 @@
-// ==========================================
-// 2. FIXED CATEGORY MODEL
 // models/Category.model.ts
 // ==========================================
 import mongoose, { Schema, Model, Document } from 'mongoose';

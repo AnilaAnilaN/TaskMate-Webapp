@@ -1,12 +1,11 @@
-// ==========================================
-// 12. NEW TASK CLIENT COMPONENT
-// app/tasks/new/NewTaskClient.tsx
+// app/(dashboard)/tasks/new/NewTaskClient.tsx
 // ==========================================
 'use client';
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Calendar as CalendarIcon, Tag, Clock } from 'lucide-react';
+import { ArrowLeft, Calendar as CalendarIcon, Clock } from 'lucide-react';
+import { getCategoryIcon } from '@/lib/config/categoryIcons';
 
 interface Category {
   id: string;
@@ -19,9 +18,9 @@ export default function NewTaskClient() {
   const router = useRouter();
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(false);
+  const [fetchingCategories, setFetchingCategories] = useState(true);
   const [message, setMessage] = useState('');
 
-  // Form state
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [categoryId, setCategoryId] = useState('');
@@ -35,16 +34,18 @@ export default function NewTaskClient() {
 
   const fetchCategories = async () => {
     try {
-      const response = await fetch('/api/categories', {
-        cache: 'no-store',
-      });
+      const response = await fetch('/api/categories', { cache: 'no-store' });
       const data = await response.json();
+      
       if (response.ok && data.categories.length > 0) {
         setCategories(data.categories);
         setCategoryId(data.categories[0].id); // Set first category as default
       }
     } catch (error) {
-      console.error('Failed to fetch categories');
+      console.error('Failed to fetch categories:', error);
+      setMessage('Failed to load categories');
+    } finally {
+      setFetchingCategories(false);
     }
   };
 
@@ -89,12 +90,41 @@ export default function NewTaskClient() {
 
       // Success - redirect to tasks page
       router.push('/tasks');
+      router.refresh();
     } catch (error: any) {
       setMessage(error.message || 'An error occurred');
     } finally {
       setLoading(false);
     }
   };
+
+  // Loading state while fetching categories
+  if (fetchingCategories) {
+    return (
+      <div className="max-w-3xl mx-auto flex items-center justify-center py-12">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-400"></div>
+      </div>
+    );
+  }
+
+  // No categories state
+  if (categories.length === 0) {
+    return (
+      <div className="max-w-3xl mx-auto text-center py-12">
+        <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-200">
+          <div className="text-6xl mb-4">📁</div>
+          <h2 className="text-xl font-bold text-gray-900 mb-2">No Categories Found</h2>
+          <p className="text-gray-500 mb-6">You need to create a category before adding tasks</p>
+          <button
+            onClick={() => router.push('/dashboard')}
+            className="px-6 py-3 bg-yellow-400 hover:bg-yellow-500 text-gray-900 rounded-xl font-medium transition-colors"
+          >
+            Go to Dashboard
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
@@ -110,7 +140,7 @@ export default function NewTaskClient() {
       </div>
 
       {/* Form */}
-      <form onSubmit={handleSubmit} className="bg-white rounded-2xl p-8 shadow-sm space-y-6">
+      <form onSubmit={handleSubmit} className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 space-y-6">
         {/* Title */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -123,6 +153,7 @@ export default function NewTaskClient() {
             placeholder="Enter task title..."
             className="w-full px-4 py-3 border border-gray-200 bg-gray-50 rounded-xl focus:ring-2 focus:ring-yellow-400 focus:border-transparent outline-none"
             required
+            maxLength={200}
           />
         </div>
 
@@ -137,6 +168,7 @@ export default function NewTaskClient() {
             placeholder="Add task description..."
             rows={4}
             className="w-full px-4 py-3 border border-gray-200 bg-gray-50 rounded-xl focus:ring-2 focus:ring-yellow-400 focus:border-transparent outline-none resize-none"
+            maxLength={5000}
           />
         </div>
 
@@ -145,22 +177,30 @@ export default function NewTaskClient() {
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Category *
           </label>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            {categories.map((category) => (
-              <button
-                key={category.id}
-                type="button"
-                onClick={() => setCategoryId(category.id)}
-                className={`p-4 rounded-xl border-2 transition-all ${
-                  categoryId === category.id
-                    ? 'border-yellow-400 bg-yellow-50'
-                    : 'border-gray-200 hover:border-gray-300'
-                }`}
-              >
-                <div className="text-2xl mb-1">{category.icon}</div>
-                <div className="text-sm font-medium text-gray-900">{category.name}</div>
-              </button>
-            ))}
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            {categories.map((category) => {
+              const IconComponent = getCategoryIcon(category.icon);
+              return (
+                <button
+                  key={category.id}
+                  type="button"
+                  onClick={() => setCategoryId(category.id)}
+                  className={`p-4 rounded-xl border-2 transition-all ${
+                    categoryId === category.id
+                      ? 'border-yellow-400 bg-yellow-50'
+                      : 'border-gray-200 hover:border-gray-300'
+                  }`}
+                >
+                  <div 
+                    className="w-10 h-10 rounded-lg mx-auto mb-2 flex items-center justify-center"
+                    style={{ backgroundColor: `${category.color}20` }}
+                  >
+                    <IconComponent className="w-5 h-5" style={{ color: category.color }} />
+                  </div>
+                  <div className="text-sm font-medium text-gray-900 truncate">{category.name}</div>
+                </button>
+              );
+            })}
           </div>
         </div>
 
@@ -218,7 +258,7 @@ export default function NewTaskClient() {
           </div>
         </div>
 
-        {/* Message */}
+        {/* Error Message */}
         {message && (
           <div className="p-4 rounded-xl bg-red-50 border border-red-200">
             <p className="text-sm font-medium text-red-800">{message}</p>
@@ -230,14 +270,15 @@ export default function NewTaskClient() {
           <button
             type="submit"
             disabled={loading}
-            className="flex-1 px-6 py-3 bg-yellow-400 hover:bg-yellow-500 disabled:bg-gray-300 text-gray-900 rounded-xl font-semibold transition-colors"
+            className="flex-1 px-6 py-3 bg-yellow-400 hover:bg-yellow-500 disabled:bg-gray-300 disabled:cursor-not-allowed text-gray-900 rounded-xl font-semibold transition-colors"
           >
             {loading ? 'Creating...' : 'Create Task'}
           </button>
           <button
             type="button"
             onClick={() => router.back()}
-            className="px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-medium transition-colors"
+            disabled={loading}
+            className="px-6 py-3 bg-gray-100 hover:bg-gray-200 disabled:bg-gray-50 text-gray-700 rounded-xl font-medium transition-colors"
           >
             Cancel
           </button>

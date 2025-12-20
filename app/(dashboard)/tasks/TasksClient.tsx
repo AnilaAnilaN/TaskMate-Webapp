@@ -1,8 +1,12 @@
+// ==========================================
+// app/(dashboard)/tasks/TasksClient.tsx
+// ==========================================
 'use client';
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Plus, Search, CheckCircle2, Circle, Clock } from 'lucide-react';
+import { Plus, Search, CheckCircle2, Circle, Clock, FileText } from 'lucide-react';
+import { getCategoryIcon } from '@/lib/config/categoryIcons';
 
 interface Task {
   id: string;
@@ -11,7 +15,7 @@ interface Task {
   status: 'todo' | 'in-progress' | 'completed';
   priority: 'low' | 'medium' | 'high' | 'urgent';
   dueDate?: string;
-  categoryId: {
+  categoryId?: {
     id: string;
     name: string;
     color: string;
@@ -43,10 +47,10 @@ export default function TasksClient() {
       
       const data = await response.json();
       if (response.ok) {
-        setTasks(data.tasks);
+        setTasks(data.tasks || []);
       }
     } catch (error) {
-      console.error('Failed to fetch tasks');
+      console.error('Failed to fetch tasks:', error);
     } finally {
       setLoading(false);
     }
@@ -85,7 +89,13 @@ export default function TasksClient() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-900">My Tasks</h1>
-        
+        <button
+          onClick={() => router.push('/tasks/new')}
+          className="px-4 py-2 bg-yellow-400 hover:bg-yellow-500 text-gray-900 rounded-xl font-medium flex items-center gap-2 transition-colors"
+        >
+          <Plus className="w-5 h-5" />
+          New Task
+        </button>
       </div>
 
       {/* Filters & Search */}
@@ -121,7 +131,7 @@ export default function TasksClient() {
       {/* Task List */}
       {filteredTasks.length === 0 ? (
         <div className="text-center py-16 bg-white rounded-2xl border border-gray-200">
-          <div className="text-6xl mb-4">📝</div>
+          <FileText className="w-16 h-16 mx-auto mb-4 text-gray-300" />
           <p className="text-gray-500 text-lg mb-4">No tasks found</p>
           <button
             onClick={() => router.push('/tasks/new')}
@@ -133,57 +143,73 @@ export default function TasksClient() {
         </div>
       ) : (
         <div className="grid gap-4">
-          {filteredTasks.map((task) => (
-            <div
-              key={task.id}
-              onClick={() => router.push(`/tasks/${task.id}`)}
-              className="bg-white rounded-2xl p-6 hover:shadow-lg transition-all cursor-pointer border border-gray-100 hover:border-yellow-400"
-            >
-              <div className="flex items-start gap-4">
-                <div className="mt-1">
-                  {getStatusIcon(task.status)}
-                </div>
-                
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-3 mb-2 flex-wrap">
-                    <h3 className="text-lg font-semibold text-gray-900">
-                      {task.title}
-                    </h3>
-                    <span
-                      className={`px-2.5 py-1 rounded-lg text-xs font-medium ${getPriorityColor(
-                        task.priority
-                      )}`}
-                    >
-                      {task.priority}
-                    </span>
+          {filteredTasks.map((task) => {
+            // Get icon component if category exists
+            const IconComponent = task.categoryId ? getCategoryIcon(task.categoryId.icon) : null;
+            
+            return (
+              <div
+                key={task.id}
+                onClick={() => router.push(`/tasks/${task.id}`)}
+                className="bg-white rounded-2xl p-6 hover:shadow-lg transition-all cursor-pointer border border-gray-100 hover:border-yellow-400"
+              >
+                <div className="flex items-start gap-4">
+                  <div className="mt-1">
+                    {getStatusIcon(task.status)}
                   </div>
-
-                  {task.description && (
-                    <p className="text-sm text-gray-600 mb-3 line-clamp-2">
-                      {task.description}
-                    </p>
-                  )}
-
-                  <div className="flex items-center gap-4 text-sm flex-wrap">
-                    <div
-                      className="flex items-center gap-2 px-3 py-1.5 rounded-lg"
-                      style={{ backgroundColor: `${task.categoryId.color}20` }}
-                    >
-                      <span>{task.categoryId.icon}</span>
-                      <span className="font-medium text-gray-700">{task.categoryId.name}</span>
+                  
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-3 mb-2 flex-wrap">
+                      <h3 className="text-lg font-semibold text-gray-900">
+                        {task.title}
+                      </h3>
+                      <span
+                        className={`px-2.5 py-1 rounded-lg text-xs font-medium ${getPriorityColor(
+                          task.priority
+                        )}`}
+                      >
+                        {task.priority}
+                      </span>
                     </div>
 
-                    {task.dueDate && (
-                      <div className="flex items-center gap-2 text-gray-500">
-                        <Clock className="w-4 h-4" />
-                        <span>{new Date(task.dueDate).toLocaleDateString()}</span>
-                      </div>
+                    {task.description && (
+                      <p className="text-sm text-gray-600 mb-3 line-clamp-2">
+                        {task.description}
+                      </p>
                     )}
+
+                    <div className="flex items-center gap-4 text-sm flex-wrap">
+                      {/* Category Badge - Only show if categoryId exists */}
+                      {task.categoryId && (
+                        <div
+                          className="flex items-center gap-2 px-3 py-1.5 rounded-lg"
+                          style={{ backgroundColor: `${task.categoryId.color}20` }}
+                        >
+                          {IconComponent && (
+                            <IconComponent 
+                              className="w-4 h-4" 
+                              style={{ color: task.categoryId.color }} 
+                            />
+                          )}
+                          <span className="font-medium text-gray-700">
+                            {task.categoryId.name}
+                          </span>
+                        </div>
+                      )}
+
+                      {/* Due Date */}
+                      {task.dueDate && (
+                        <div className="flex items-center gap-2 text-gray-500">
+                          <Clock className="w-4 h-4" />
+                          <span>{new Date(task.dueDate).toLocaleDateString()}</span>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

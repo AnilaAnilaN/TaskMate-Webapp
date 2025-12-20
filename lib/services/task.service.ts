@@ -1,5 +1,3 @@
-// ==========================================
-// 4. TASK SERVICE
 // lib/services/task.service.ts
 // ==========================================
 import TaskModel, { TaskStatus, TaskPriority } from '@/models/Task.model';
@@ -35,22 +33,18 @@ interface GetTasksFilters {
 }
 
 class TaskService {
-  // Get all tasks for a user with filters
   async getUserTasks(userId: string, filters: GetTasksFilters = {}) {
     const query: any = { userId };
 
     if (filters.status) {
       query.status = filters.status;
     }
-
     if (filters.categoryId) {
       query.categoryId = filters.categoryId;
     }
-
     if (filters.priority) {
       query.priority = filters.priority;
     }
-
     if (filters.search) {
       query.$or = [
         { title: { $regex: filters.search, $options: 'i' } },
@@ -65,7 +59,6 @@ class TaskService {
     return tasks;
   }
 
-  // Get single task
   async getTask(userId: string, taskId: string) {
     const task = await TaskModel.findOne({ _id: taskId, userId })
       .populate('categoryId', 'name color icon');
@@ -73,26 +66,20 @@ class TaskService {
     if (!task) {
       throw new Error('Task not found');
     }
-
     return task;
   }
 
-  // Create a new task
   async createTask(userId: string, data: CreateTaskPayload) {
     const task = await TaskModel.create({
       userId,
       ...data,
     });
 
-    // Populate category before returning
     await task.populate('categoryId', 'name color icon');
-
     return task;
   }
 
-  // Update a task
   async updateTask(userId: string, taskId: string, data: UpdateTaskPayload) {
-    // If status is being changed to completed, set completedAt
     if (data.status === 'completed') {
       (data as any).completedAt = new Date();
     }
@@ -106,22 +93,18 @@ class TaskService {
     if (!task) {
       throw new Error('Task not found');
     }
-
     return task;
   }
 
-  // Delete a task
   async deleteTask(userId: string, taskId: string) {
     const task = await TaskModel.findOneAndDelete({ _id: taskId, userId });
 
     if (!task) {
       throw new Error('Task not found');
     }
-
     return { message: 'Task deleted successfully' };
   }
 
-  // Get today's tasks
   async getTodayTasks(userId: string) {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -139,7 +122,6 @@ class TaskService {
     return tasks;
   }
 
-  // Get overdue tasks
   async getOverdueTasks(userId: string) {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -148,6 +130,36 @@ class TaskService {
       userId,
       status: { $ne: 'completed' },
       dueDate: { $lt: today },
+    })
+      .populate('categoryId', 'name color icon')
+      .sort({ dueDate: 1 });
+
+    return tasks;
+  }
+
+  async getTasksByDate(userId: string, date: Date) {
+    const startOfDay = new Date(date);
+    startOfDay.setHours(0, 0, 0, 0);
+    const endOfDay = new Date(date);
+    endOfDay.setHours(23, 59, 59, 999);
+
+    const tasks = await TaskModel.find({
+      userId,
+      dueDate: { $gte: startOfDay, $lte: endOfDay },
+    })
+      .populate('categoryId', 'name color icon')
+      .sort({ dueDate: 1 });
+
+    return tasks;
+  }
+
+  async getTasksForMonth(userId: string, year: number, month: number) {
+    const startDate = new Date(year, month, 1);
+    const endDate = new Date(year, month + 1, 0, 23, 59, 59, 999);
+
+    const tasks = await TaskModel.find({
+      userId,
+      dueDate: { $gte: startDate, $lte: endDate },
     })
       .populate('categoryId', 'name color icon')
       .sort({ dueDate: 1 });

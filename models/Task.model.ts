@@ -1,5 +1,3 @@
-// ==========================================
-// 3. FIXED TASK MODEL
 // models/Task.model.ts
 // ==========================================
 import mongoose, { Schema, Model, Document } from 'mongoose';
@@ -9,7 +7,7 @@ export type TaskPriority = 'low' | 'medium' | 'high' | 'urgent';
 
 export interface ITask extends Document {
   userId: mongoose.Types.ObjectId;
-  categoryId: mongoose.Types.ObjectId;
+  categoryId: mongoose.Types.ObjectId; // Keep as ObjectId
   title: string;
   description: string;
   status: TaskStatus;
@@ -106,3 +104,4 @@ const TaskModel: Model<ITask> = mongoose.models.Task
   : mongoose.model<ITask>('Task', TaskSchema);
 
 export default TaskModel;
+

@@ -1,5 +1,3 @@
-// ==========================================
-// 6. CATEGORY API ROUTES (Single)
 // app/api/categories/[id]/route.ts
 // ==========================================
 import { NextRequest, NextResponse } from 'next/server';
@@ -7,7 +5,6 @@ import { dbConnect } from '@/lib/db/mongoose';
 import { categoryService } from '@/lib/services/category.service';
 import { verifyToken } from '@/lib/auth/jwt';
 
-// PUT - Update category
 export async function PUT(
   request: NextRequest,
   { params }: { params: { id: string } }
@@ -35,7 +32,6 @@ export async function PUT(
   }
 }
 
-// DELETE - Delete category
 export async function DELETE(
   request: NextRequest,
   { params }: { params: { id: string } }
@@ -49,7 +45,6 @@ export async function DELETE(
     }
 
     const decoded = verifyToken(token);
-
     const result = await categoryService.deleteCategory(decoded.userId, params.id);
 
     return NextResponse.json({ success: true, ...result });
