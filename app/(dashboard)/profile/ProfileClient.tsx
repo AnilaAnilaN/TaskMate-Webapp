@@ -20,7 +20,6 @@ interface ProfileData {
 export default function ProfileClient() {
   const router = useRouter();
   const [profile, setProfile] = useState<ProfileData | null>(null);
-  const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   
@@ -37,11 +36,7 @@ export default function ProfileClient() {
   const [messageType, setMessageType] = useState<'success' | 'error'>('success');
 
   useEffect(() => {
-    fetchProfile();
-  }, []);
-
-  const fetchProfile = async () => {
-    try {
+    const fetchProfile = async () => {
       const response = await fetch('/api/profile', {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
@@ -57,13 +52,9 @@ export default function ProfileClient() {
       setProfile(data.profile);
       setEditedName(data.profile.name);
       setEditedBio(data.profile.bio || '');
-    } catch (error: any) {
-      setMessage(error.message);
-      setMessageType('error');
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
+    fetchProfile();
+  }, []);
 
   const handleSaveProfile = async () => {
     setSaving(true);
@@ -149,20 +140,8 @@ export default function ProfileClient() {
       .slice(0, 2);
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-400"></div>
-      </div>
-    );
-  }
-
   if (!profile) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p className="text-gray-600">Failed to load profile</p>
-      </div>
-    );
+    return null;
   }
 
   return (

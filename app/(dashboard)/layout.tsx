@@ -1,8 +1,8 @@
-// ==========================================
-// 1. CREATE: app/(dashboard)/layout.tsx
+// app/(dashboard)/layout.tsx
 // ==========================================
 import Sidebar from '@/components/dashboard/Sidebar';
 import Topbar from '@/components/dashboard/Topbar';
+import { TimerProvider } from '@/lib/contexts/TimerContext';
 
 export default function DashboardLayout({
   children,
@@ -10,12 +10,14 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex h-screen bg-gray-50">
-      <Sidebar />
-      <div className="flex-1 overflow-auto p-8">
-        <Topbar />
-        {children}
+    <TimerProvider>
+      <div className="flex h-screen bg-gray-50">
+        <Sidebar />
+        <div className="flex-1 overflow-auto p-8">
+          <Topbar />
+          {children}
+        </div>
       </div>
-    </div>
+    </TimerProvider>
   );
 }

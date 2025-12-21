@@ -35,20 +35,11 @@ export default function DashboardClient() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [todayTasks, setTodayTasks] = useState<Task[]>([]);
-  const [loading, setLoading] = useState(true);
   const [showAddCategory, setShowAddCategory] = useState(false);
   const [calendarTasks, setCalendarTasks] = useState<Record<number, number>>({});
 
   useEffect(() => {
-    fetchData();
-  }, []);
-
-  useEffect(() => {
-    fetchCalendarTasks();
-  }, [currentDate]);
-
-  const fetchData = async () => {
-    try {
+    const fetchData = async () => {
       const [categoriesRes, tasksRes] = await Promise.all([
         fetch('/api/categories', { cache: 'no-store' }),
         fetch('/api/tasks?status=todo', { cache: 'no-store' }),
@@ -76,15 +67,12 @@ export default function DashboardClient() {
         });
         setTodayTasks(todayFiltered);
       }
-    } catch (error) {
-      console.error('Failed to fetch data:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
+    fetchData();
+  }, []);
 
-  const fetchCalendarTasks = async () => {
-    try {
+  useEffect(() => {
+    const fetchCalendarTasks = async () => {
       const year = currentDate.getFullYear();
       const month = currentDate.getMonth();
       
@@ -106,10 +94,10 @@ export default function DashboardClient() {
         });
         setCalendarTasks(tasksByDate);
       }
-    } catch (error) {
-      console.error('Failed to fetch calendar tasks:', error);
-    }
-  };
+    };
+    fetchCalendarTasks();
+  }, [currentDate]);
+
 
   const getDaysInMonth = (date: Date) => {
     const year = date.getFullYear();
@@ -187,14 +175,6 @@ export default function DashboardClient() {
     if (dueDate >= tomorrow && dueDate < new Date(tomorrow.getTime() + 86400000)) return 'Tomorrow';
     return dueDate.toLocaleDateString();
   };
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-96">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-400"></div>
-      </div>
-    );
-  }
 
   return (
     <>
@@ -368,6 +348,35 @@ export default function DashboardClient() {
         onClose={() => setShowAddCategory(false)}
         onSuccess={() => {
           setShowAddCategory(false);
+          const fetchData = async () => {
+            const [categoriesRes, tasksRes] = await Promise.all([
+              fetch('/api/categories', { cache: 'no-store' }),
+              fetch('/api/tasks?status=todo', { cache: 'no-store' }),
+            ]);
+
+            const categoriesData = await categoriesRes.json();
+            const tasksData = await tasksRes.json();
+
+            if (categoriesData.success) {
+              setCategories(categoriesData.categories);
+            }
+
+            if (tasksData.success) {
+              setTasks(tasksData.tasks);
+              
+              const today = new Date();
+              today.setHours(0, 0, 0, 0);
+              const tomorrow = new Date(today);
+              tomorrow.setDate(tomorrow.getDate() + 1);
+
+              const todayFiltered = tasksData.tasks.filter((task: Task) => {
+                if (!task.dueDate) return false;
+                const taskDate = new Date(task.dueDate);
+                return taskDate >= today && taskDate < tomorrow;
+              });
+              setTodayTasks(todayFiltered);
+            }
+          };
           fetchData();
         }}
       />

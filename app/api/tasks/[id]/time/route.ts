@@ -17,7 +17,10 @@ export async function POST(
 
     const decoded = verifyToken(token);
     const { id } = await params;
-    const { minutesToAdd } = await request.json();
+    const body = await request.json();
+    const { minutesToAdd } = body;
+
+    console.log('Time tracking request:', { taskId: id, minutesToAdd });
 
     if (!minutesToAdd || minutesToAdd < 0) {
       return NextResponse.json({ error: 'Invalid time value' }, { status: 400 });
@@ -28,6 +31,8 @@ export async function POST(
       id,
       Math.floor(minutesToAdd)
     );
+
+    console.log('Time saved successfully:', { taskId: id, newActualTime: task.actualTime });
 
     return NextResponse.json({ success: true, task });
   } catch (error: any) {

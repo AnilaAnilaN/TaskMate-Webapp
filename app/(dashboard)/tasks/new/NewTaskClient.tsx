@@ -1,11 +1,10 @@
-// app/(dashboard)/tasks/new/NewTaskClient.tsx
-// ==========================================
 'use client';
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Calendar as CalendarIcon, Clock } from 'lucide-react';
 import { getCategoryIcon } from '@/lib/config/categoryIcons';
+import RichTextEditor from '@/components/editor/RichTextEditor';
 
 interface Category {
   id: string;
@@ -22,7 +21,7 @@ export default function NewTaskClient() {
   const [message, setMessage] = useState('');
 
   const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
+  const [description, setDescription] = useState(''); // Now stores HTML
   const [categoryId, setCategoryId] = useState('');
   const [priority, setPriority] = useState<'low' | 'medium' | 'high' | 'urgent'>('medium');
   const [dueDate, setDueDate] = useState('');
@@ -39,7 +38,7 @@ export default function NewTaskClient() {
       
       if (response.ok && data.categories.length > 0) {
         setCategories(data.categories);
-        setCategoryId(data.categories[0].id); // Set first category as default
+        setCategoryId(data.categories[0].id);
       }
     } catch (error) {
       console.error('Failed to fetch categories:', error);
@@ -68,7 +67,7 @@ export default function NewTaskClient() {
     try {
       const taskData = {
         title: title.trim(),
-        description: description.trim(),
+        description: description, // HTML content
         categoryId,
         priority,
         ...(dueDate && { dueDate: new Date(dueDate) }),
@@ -88,7 +87,6 @@ export default function NewTaskClient() {
         throw new Error(data.error || 'Failed to create task');
       }
 
-      // Success - redirect to tasks page
       router.push('/tasks');
       router.refresh();
     } catch (error: any) {
@@ -98,7 +96,6 @@ export default function NewTaskClient() {
     }
   };
 
-  // Loading state while fetching categories
   if (fetchingCategories) {
     return (
       <div className="max-w-3xl mx-auto flex items-center justify-center py-12">
@@ -107,7 +104,6 @@ export default function NewTaskClient() {
     );
   }
 
-  // No categories state
   if (categories.length === 0) {
     return (
       <div className="max-w-3xl mx-auto text-center py-12">
@@ -128,7 +124,6 @@ export default function NewTaskClient() {
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
-      {/* Header */}
       <div className="flex items-center gap-4">
         <button
           onClick={() => router.back()}
@@ -139,9 +134,7 @@ export default function NewTaskClient() {
         <h1 className="text-2xl font-bold text-gray-900">Create New Task</h1>
       </div>
 
-      {/* Form */}
       <form onSubmit={handleSubmit} className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 space-y-6">
-        {/* Title */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Task Title *
@@ -157,22 +150,17 @@ export default function NewTaskClient() {
           />
         </div>
 
-        {/* Description */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Description
           </label>
-          <textarea
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            placeholder="Add task description..."
-            rows={4}
-            className="w-full px-4 py-3 border border-gray-200 bg-gray-50 rounded-xl focus:ring-2 focus:ring-yellow-400 focus:border-transparent outline-none resize-none"
-            maxLength={5000}
+          <RichTextEditor
+            content={description}
+            onChange={setDescription}
+            placeholder="Add task description with rich formatting..."
           />
         </div>
 
-        {/* Category */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Category *
@@ -204,7 +192,6 @@ export default function NewTaskClient() {
           </div>
         </div>
 
-        {/* Priority */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Priority
@@ -227,7 +214,6 @@ export default function NewTaskClient() {
           </div>
         </div>
 
-        {/* Due Date & Estimated Time */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -258,14 +244,12 @@ export default function NewTaskClient() {
           </div>
         </div>
 
-        {/* Error Message */}
         {message && (
           <div className="p-4 rounded-xl bg-red-50 border border-red-200">
             <p className="text-sm font-medium text-red-800">{message}</p>
           </div>
         )}
 
-        {/* Actions */}
         <div className="flex gap-3 pt-4">
           <button
             type="submit"

@@ -25,10 +25,7 @@ export default function CategoriesClient() {
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetchCategories();
-  }, []);
-
+  // ✅ Move fetchCategories outside useEffect so it can be reused
   const fetchCategories = async () => {
     try {
       const response = await fetch('/api/categories', { cache: 'no-store' });
@@ -43,6 +40,10 @@ export default function CategoriesClient() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchCategories();
+  }, []);
 
   const handleDelete = async (categoryId: string, isDefault: boolean) => {
     if (isDefault) {
@@ -63,7 +64,7 @@ export default function CategoriesClient() {
       const data = await response.json();
 
       if (response.ok) {
-        await fetchCategories();
+        await fetchCategories(); // ✅ Now this works
       } else {
         alert(data.error || 'Failed to delete category');
       }
@@ -196,7 +197,7 @@ export default function CategoriesClient() {
         onClose={() => setShowAddModal(false)}
         onSuccess={() => {
           setShowAddModal(false);
-          fetchCategories();
+          fetchCategories(); // ✅ Simplified
         }}
       />
 
@@ -207,7 +208,7 @@ export default function CategoriesClient() {
           onClose={() => setEditingCategory(null)}
           onSuccess={() => {
             setEditingCategory(null);
-            fetchCategories();
+            fetchCategories(); // ✅ Simplified
           }}
         />
       )}

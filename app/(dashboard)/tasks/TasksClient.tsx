@@ -26,16 +26,11 @@ interface Task {
 export default function TasksClient() {
   const router = useRouter();
   const [tasks, setTasks] = useState<Task[]>([]);
-  const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
   const [search, setSearch] = useState('');
 
   useEffect(() => {
-    fetchTasks();
-  }, [filter]);
-
-  const fetchTasks = async () => {
-    try {
+    const fetchTasks = async () => {
       const queryParams = new URLSearchParams();
       if (filter !== 'all') {
         queryParams.append('status', filter);
@@ -49,12 +44,9 @@ export default function TasksClient() {
       if (response.ok) {
         setTasks(data.tasks || []);
       }
-    } catch (error) {
-      console.error('Failed to fetch tasks:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
+    fetchTasks();
+  }, [filter]);
 
   const getPriorityColor = (priority: string) => {
     const colors = {
@@ -75,14 +67,6 @@ export default function TasksClient() {
   const filteredTasks = tasks.filter(task =>
     task.title.toLowerCase().includes(search.toLowerCase())
   );
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-96">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-400"></div>
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-6">
