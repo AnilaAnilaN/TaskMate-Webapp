@@ -1,12 +1,13 @@
 // ==========================================
-// app/(dashboard)/tasks/TasksClient.tsx
+// TasksClient.tsx - UPDATED
 // ==========================================
 'use client';
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Plus, Search, CheckCircle2, Circle, Clock, FileText } from 'lucide-react';
+import { Plus, Search, CheckCircle2, Circle, Clock, FileText, Pause, Play } from 'lucide-react';
 import { getCategoryIcon } from '@/lib/config/categoryIcons';
+import { useTimer } from '@/lib/contexts/TimerContext';
 
 interface Task {
   id: string;
@@ -25,25 +26,26 @@ interface Task {
 
 export default function TasksClient() {
   const router = useRouter();
+  const { isTimerActive, stopTimer, startTimer } = useTimer();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [filter, setFilter] = useState('all');
   const [search, setSearch] = useState('');
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchTasks = async () => {
+      setLoading(true);
       const queryParams = new URLSearchParams();
       if (filter !== 'all') {
         queryParams.append('status', filter);
       }
 
-      const response = await fetch(`/api/tasks?${queryParams}`, {
-        cache: 'no-store',
-      });
-      
+      const response = await fetch(`/api/tasks?${queryParams}`, { cache: 'no-store' });
       const data = await response.json();
       if (response.ok) {
         setTasks(data.tasks || []);
       }
+      setLoading(false);
     };
     fetchTasks();
   }, [filter]);
@@ -64,24 +66,39 @@ export default function TasksClient() {
     return <Circle className="w-5 h-5 text-gray-400" />;
   };
 
+  const handleTimerToggle = async (e: React.MouseEvent, taskId: string) => {
+    e.stopPropagation();
+    
+    if (isTimerActive(taskId)) {
+      const result = stopTimer();
+      if (result) {
+        const minutesTracked = Math.floor(result.elapsedSeconds / 60);
+        if (minutesTracked > 0) {
+          await fetch(`/api/tasks/${taskId}/time`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ minutesToAdd: minutesTracked }),
+          });
+        }
+      }
+    } else {
+      startTimer(taskId);
+    }
+  };
+
   const filteredTasks = tasks.filter(task =>
     task.title.toLowerCase().includes(search.toLowerCase())
   );
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-900">My Tasks</h1>
-        <button
-          onClick={() => router.push('/tasks/new')}
-        >
-          <Plus className="w-5 h-5" />
-          New Task
+        <button onClick={() => router.push('/tasks/new')} className="px-4 py-2 bg-yellow-400 hover:bg-yellow-500 text-gray-900 rounded-xl font-medium flex items-center gap-2">
+          <Plus className="w-5 h-5" /> New Task
         </button>
       </div>
 
-      {/* Filters & Search */}
       <div className="flex flex-col sm:flex-row gap-4">
         <div className="flex-1 relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -111,24 +128,19 @@ export default function TasksClient() {
         </div>
       </div>
 
-      {/* Task List */}
       {filteredTasks.length === 0 ? (
         <div className="text-center py-16 bg-white rounded-2xl border border-gray-200">
           <FileText className="w-16 h-16 mx-auto mb-4 text-gray-300" />
           <p className="text-gray-500 text-lg mb-4">No tasks found</p>
-          <button
-            onClick={() => router.push('/tasks/new')}
-            className="px-6 py-3 bg-yellow-400 hover:bg-yellow-500 text-gray-900 rounded-xl font-medium transition-colors inline-flex items-center gap-2"
-          >
-            <Plus className="w-5 h-5" />
-            Create your first task
+          <button onClick={() => router.push('/tasks/new')} className="px-6 py-3 bg-yellow-400 hover:bg-yellow-500 text-gray-900 rounded-xl font-medium transition-colors inline-flex items-center gap-2">
+            <Plus className="w-5 h-5" /> Create your first task
           </button>
         </div>
       ) : (
         <div className="grid gap-4">
           {filteredTasks.map((task) => {
-            // Get icon component if category exists
             const IconComponent = task.categoryId ? getCategoryIcon(task.categoryId.icon) : null;
+            const isTracking = isTimerActive(task.id);
             
             return (
               <div
@@ -143,50 +155,60 @@ export default function TasksClient() {
                   
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-3 mb-2 flex-wrap">
-                      <h3 className="text-lg font-semibold text-gray-900">
-                        {task.title}
-                      </h3>
-                      <span
-                        className={`px-2.5 py-1 rounded-lg text-xs font-medium ${getPriorityColor(
-                          task.priority
-                        )}`}
-                      >
+                      <h3 className="text-lg font-semibold text-gray-900">{task.title}</h3>
+                      
+                      <span className={`px-2.5 py-1 rounded-lg text-xs font-medium ${getPriorityColor(task.priority)}`}>
                         {task.priority}
                       </span>
+
+                      {isTracking && (
+                        <div className="flex items-center gap-2 px-2.5 py-1 bg-red-50 border border-red-200 rounded-lg">
+                          <div className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse"></div>
+                          <span className="text-xs font-medium text-red-700">Tracking</span>
+                        </div>
+                      )}
                     </div>
 
                     {task.description && (
-                      <p className="text-sm text-gray-600 mb-3 line-clamp-2">
-                        {task.description}
-                      </p>
+                      <p className="text-sm text-gray-600 mb-3 line-clamp-2">{task.description}</p>
                     )}
 
                     <div className="flex items-center gap-4 text-sm flex-wrap">
-                      {/* Category Badge - Only show if categoryId exists */}
                       {task.categoryId && (
-                        <div
-                          className="flex items-center gap-2 px-3 py-1.5 rounded-lg"
-                          style={{ backgroundColor: `${task.categoryId.color}20` }}
-                        >
-                          {IconComponent && (
-                            <IconComponent 
-                              className="w-4 h-4" 
-                              style={{ color: task.categoryId.color }} 
-                            />
-                          )}
-                          <span className="font-medium text-gray-700">
-                            {task.categoryId.name}
-                          </span>
+                        <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg" style={{ backgroundColor: `${task.categoryId.color}20` }}>
+                          {IconComponent && <IconComponent className="w-4 h-4" style={{ color: task.categoryId.color }} />}
+                          <span className="font-medium text-gray-700">{task.categoryId.name}</span>
                         </div>
                       )}
 
-                      {/* Due Date */}
                       {task.dueDate && (
                         <div className="flex items-center gap-2 text-gray-500">
                           <Clock className="w-4 h-4" />
                           <span>{new Date(task.dueDate).toLocaleDateString()}</span>
                         </div>
                       )}
+
+                      {/* Timer Toggle Button */}
+                      <button
+                        onClick={(e) => handleTimerToggle(e, task.id)}
+                        className={`ml-auto flex items-center gap-2 px-3 py-1.5 rounded-lg font-medium transition-colors ${
+                          isTracking
+                            ? 'bg-red-100 hover:bg-red-200 text-red-700'
+                            : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+                        }`}
+                      >
+                        {isTracking ? (
+                          <>
+                            <Pause className="w-4 h-4" />
+                            <span className="text-xs">Stop</span>
+                          </>
+                        ) : (
+                          <>
+                            <Play className="w-4 h-4" />
+                            <span className="text-xs">Start</span>
+                          </>
+                        )}
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -198,3 +220,5 @@ export default function TasksClient() {
     </div>
   );
 }
+
+
