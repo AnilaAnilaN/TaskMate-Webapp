@@ -56,7 +56,7 @@ class TaskService {
       .populate('categoryId', 'name color icon')
       .sort({ createdAt: -1 });
 
-    return tasks;
+    return tasks.map((task) => task.toJSON());
   }
 
   async getTask(userId: string, taskId: string) {
@@ -66,7 +66,7 @@ class TaskService {
     if (!task) {
       throw new Error('Task not found');
     }
-    return task;
+    return task.toJSON();
   }
 
   async createTask(userId: string, data: CreateTaskPayload) {
@@ -76,7 +76,7 @@ class TaskService {
     });
 
     await task.populate('categoryId', 'name color icon');
-    return task;
+    return task.toJSON();
   }
 
   async updateTask(userId: string, taskId: string, data: UpdateTaskPayload) {
@@ -93,7 +93,7 @@ class TaskService {
     if (!task) {
       throw new Error('Task not found');
     }
-    return task;
+    return task.toJSON();
   }
 
   async deleteTask(userId: string, taskId: string) {
@@ -103,6 +103,19 @@ class TaskService {
       throw new Error('Task not found');
     }
     return { message: 'Task deleted successfully' };
+  }
+
+  async incrementActualTime(userId: string, taskId: string, minutesToAdd: number) {
+    const task = await TaskModel.findOneAndUpdate(
+      { _id: taskId, userId },
+      { $inc: { actualTime: minutesToAdd } },
+      { new: true, runValidators: true }
+    ).populate('categoryId', 'name color icon');
+
+    if (!task) {
+      throw new Error('Task not found');
+    }
+    return task.toJSON();
   }
 
   async getTodayTasks(userId: string) {
@@ -119,7 +132,7 @@ class TaskService {
       .populate('categoryId', 'name color icon')
       .sort({ priority: -1 });
 
-    return tasks;
+    return tasks.map((task) => task.toJSON());
   }
 
   async getOverdueTasks(userId: string) {
@@ -134,7 +147,7 @@ class TaskService {
       .populate('categoryId', 'name color icon')
       .sort({ dueDate: 1 });
 
-    return tasks;
+    return tasks.map((task) => task.toJSON());
   }
 
   async getTasksByDate(userId: string, date: Date) {
@@ -150,7 +163,7 @@ class TaskService {
       .populate('categoryId', 'name color icon')
       .sort({ dueDate: 1 });
 
-    return tasks;
+    return tasks.map((task) => task.toJSON());
   }
 
   async getTasksForMonth(userId: string, year: number, month: number) {
@@ -164,7 +177,7 @@ class TaskService {
       .populate('categoryId', 'name color icon')
       .sort({ dueDate: 1 });
 
-    return tasks;
+    return tasks.map((task) => task.toJSON());
   }
 }
 

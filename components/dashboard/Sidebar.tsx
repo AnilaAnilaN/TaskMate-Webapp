@@ -1,8 +1,9 @@
 // components/dashboard/Sidebar.tsx
 // ==========================================
+  
 'use client';
 
-import { Calendar, Bell, Settings, LogOut } from 'lucide-react';
+import { Calendar, Bell, FolderOpen, Settings, LogOut } from 'lucide-react';
 import { useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
@@ -50,6 +51,18 @@ export default function Sidebar() {
             <span className="text-sm">Dashboard</span>
           </Link>
 
+                   <Link
+  href="/dashboard/categories"
+  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors ${
+    isActive('/dashboard/categories')
+      ? 'bg-gray-100 text-gray-900 font-medium'
+      : 'text-gray-600 hover:bg-gray-50'
+  }`}
+>
+  <FolderOpen className="w-5 h-5" />
+  <span className="text-sm">Categories</span>
+</Link>
+
           <Link
             href="/tasks"
             className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors ${
@@ -73,16 +86,19 @@ export default function Sidebar() {
             <Bell className="w-5 h-5" />
             <span className="text-sm">Notifications</span>
           </Link>
+
+ 
         </nav>
       </div>
+
 
       <div className="flex-1"></div>
 
       <div className="p-6 border-t border-gray-200 space-y-1">
         <Link
-          href="/settings"
+          href="/profile"
           className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors ${
-            isActive('/settings')
+            isActive('/profile')
               ? 'bg-gray-100 text-gray-900 font-medium'
               : 'text-gray-600 hover:bg-gray-50'
           }`}

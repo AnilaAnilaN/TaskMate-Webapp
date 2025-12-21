@@ -91,7 +91,6 @@ export default function TasksClient() {
         <h1 className="text-2xl font-bold text-gray-900">My Tasks</h1>
         <button
           onClick={() => router.push('/tasks/new')}
-          className="px-4 py-2 bg-yellow-400 hover:bg-yellow-500 text-gray-900 rounded-xl font-medium flex items-center gap-2 transition-colors"
         >
           <Plus className="w-5 h-5" />
           New Task

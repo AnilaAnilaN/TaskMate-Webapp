@@ -1,14 +1,23 @@
-// components/dashboard/AddCategoryModal.tsx
+// components/dashboard/EditCategoryModal.tsx
 // ==========================================
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { X, Briefcase, Home, Users, Heart, BookOpen, DollarSign,
   Gamepad2, Palette, Car, Plane, Coffee, Music, Smartphone, 
   Laptop, Wrench, ShoppingBag, Film, Dumbbell } from 'lucide-react';
 
-interface AddCategoryModalProps {
+interface Category {
+  id: string;
+  name: string;
+  color: string;
+  icon: string;
+  isDefault: boolean;
+}
+
+interface EditCategoryModalProps {
   isOpen: boolean;
+  category: Category;
   onClose: () => void;
   onSuccess: () => void;
 }
@@ -39,12 +48,20 @@ const ICON_OPTIONS = [
   { key: 'dumbbell', Icon: Dumbbell },
 ];
 
-export default function AddCategoryModal({ isOpen, onClose, onSuccess }: AddCategoryModalProps) {
+export default function EditCategoryModal({ isOpen, category, onClose, onSuccess }: EditCategoryModalProps) {
   const [name, setName] = useState('');
-  const [color, setColor] = useState(COLORS[0]);
-  const [icon, setIcon] = useState(ICON_OPTIONS[0].key);
+  const [color, setColor] = useState('');
+  const [icon, setIcon] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (category) {
+      setName(category.name);
+      setColor(category.color);
+      setIcon(category.icon);
+    }
+  }, [category]);
 
   if (!isOpen) return null;
 
@@ -60,8 +77,8 @@ export default function AddCategoryModal({ isOpen, onClose, onSuccess }: AddCate
     setError('');
 
     try {
-      const response = await fetch('/api/categories', {
-        method: 'POST',
+      const response = await fetch(`/api/categories/${category.id}`, {
+        method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: name.trim(), color, icon }),
       });
@@ -69,12 +86,9 @@ export default function AddCategoryModal({ isOpen, onClose, onSuccess }: AddCate
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to create category');
+        throw new Error(data.error || 'Failed to update category');
       }
 
-      setName('');
-      setColor(COLORS[0]);
-      setIcon(ICON_OPTIONS[0].key);
       onSuccess();
     } catch (error: any) {
       setError(error.message);
@@ -85,9 +99,6 @@ export default function AddCategoryModal({ isOpen, onClose, onSuccess }: AddCate
 
   const handleClose = () => {
     if (!loading) {
-      setName('');
-      setColor(COLORS[0]);
-      setIcon(ICON_OPTIONS[0].key);
       setError('');
       onClose();
     }
@@ -97,7 +108,7 @@ export default function AddCategoryModal({ isOpen, onClose, onSuccess }: AddCate
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-2xl max-w-md w-full p-6 max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-bold text-gray-900">Add Category</h2>
+          <h2 className="text-xl font-bold text-gray-900">Edit Category</h2>
           <button
             onClick={handleClose}
             disabled={loading}
@@ -176,7 +187,7 @@ export default function AddCategoryModal({ isOpen, onClose, onSuccess }: AddCate
               disabled={loading}
               className="flex-1 px-6 py-3 bg-yellow-400 hover:bg-yellow-500 disabled:bg-gray-300 disabled:cursor-not-allowed text-gray-900 rounded-xl font-semibold transition-colors"
             >
-              {loading ? 'Creating...' : 'Create Category'}
+              {loading ? 'Saving...' : 'Save Changes'}
             </button>
             <button
               type="button"

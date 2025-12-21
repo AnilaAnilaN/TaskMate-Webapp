@@ -223,8 +223,11 @@ export default function DashboardClient() {
           <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
             <div className="flex items-center justify-between mb-4">
               <h2 className="font-semibold text-gray-900">My categories</h2>
-              <button className="text-gray-400 hover:text-gray-600">
-                <MoreVertical className="w-5 h-5" />
+              <button 
+                onClick={() => router.push('dashboard/categories')}
+                className="text-sm text-yellow-600 hover:text-yellow-700 font-medium"
+              >
+                Manage
               </button>
             </div>
             <div className="space-y-3">
