@@ -2,7 +2,6 @@
 // ==========================================
 import Sidebar from '@/components/dashboard/Sidebar';
 import Topbar from '@/components/dashboard/Topbar';
-import ThemeInitializer from '@/components/ThemeInitializer';
 import { TimerProvider } from '@/lib/contexts/TimerContext';
 
 export default function DashboardLayout({
@@ -12,7 +11,6 @@ export default function DashboardLayout({
 }) {
   return (
     <TimerProvider>
-      <ThemeInitializer />
       <div className="flex h-screen bg-gray-50">
         <Sidebar />
         <div className="flex-1 overflow-auto p-8">
