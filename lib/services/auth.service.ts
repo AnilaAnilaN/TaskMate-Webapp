@@ -1,81 +1,78 @@
-// AuthService - Business logic for user authentication.
-// ============================================
-// lib/services/auth.service.ts - Auth Business Logic
-// ============================================
+// lib/services/auth.service.ts
 import crypto from 'crypto';
+import jwt from 'jsonwebtoken';
+import bcrypt from 'bcryptjs';
+import mongoose from 'mongoose';
 import UserModel from '@/models/User.model';
-import type { SignupPayload, LoginPayload, User } from '@/types/auth.types';
 import { sendVerificationCode, sendPasswordResetEmail } from './email.service';
-import { validatePassword, validateEmail, validateName } from '@/lib/validations';
+import type { SignupPayload, LoginPayload, AuthResult, User } from '@/types/auth.types';
 
 class AuthService {
+  private generateVerificationCode(): string {
+    return Math.floor(100000 + Math.random() * 900000).toString();
+  }
+
+  // Helper to safely transform Mongoose doc to User DTO
+  private transformUserToDTO(user: any): User {
+    return {
+      id: user._id.toString(),
+      name: user.name,
+      email: user.email,
+      emailVerified: user.emailVerified,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
+    };
+  }
+
   async signup({ name, email, password }: SignupPayload): Promise<{ message: string }> {
-    validateName(name);
-    validateEmail(email);
-    validatePassword(password);
-    // Check if user exists
-    const existingUser = await UserModel.findOne({ email });
+    const existingUser = await UserModel.findOne({ email: email.toLowerCase().trim() });
     if (existingUser) {
       throw new Error('User with this email already exists');
     }
 
-    // Generate verification code
-    const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
-    const verificationCodeExpiry = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
+    const verificationCode = this.generateVerificationCode();
+    const verificationCodeExpiry = new Date(Date.now() + 15 * 60 * 1000);
 
-    // Create user
-    const user = await UserModel.create({
-      name,
-      email,
+    await UserModel.create({
+      name: name.trim(),
+      email: email.toLowerCase().trim(),
       password,
       verificationCode,
       verificationCodeExpiry,
       emailVerified: false,
     });
 
-    // Send verification email
-    await sendVerificationCode(email, verificationCode);
+    console.log('New user created:', email);
 
-    return { message: 'Account created successfully. Please check your email to verify your account.' };
-  }
-
-  async login({ email, password }: LoginPayload): Promise<User> {
-    // Find user with password field
-    const user = await UserModel.findOne({ email }).select('+password');
-    if (!user) {
-      throw new Error('Invalid email or password');
+    try {
+      await sendVerificationCode(email, verificationCode);
+    } catch (error) {
+      console.error('Failed to send verification code email:', error);
     }
 
-    // Check if email is verified
-    if (!user.emailVerified) {
-      throw new Error('Please verify your email before logging in');
-    }
-
-    // Verify password
-    const isPasswordValid = await user.comparePassword(password);
-    if (!isPasswordValid) {
-      throw new Error('Invalid email or password');
-    }
-
-    // Return user without password
-    return user.toJSON() as User;
+    return {
+      message: 'Account created successfully! Please check your email for the 6-digit verification code.',
+    };
   }
 
   async verifyCode(email: string, code: string): Promise<{ message: string }> {
-    const user = await UserModel.findOne({ email }).select(
-      '+verificationCode +verificationCodeExpiry'
-    );
-
-    if (!user || !user.verificationCode || !user.verificationCodeExpiry) {
-      throw new Error('Invalid verification code or email.');
-    }
-    
-    if (user.verificationCodeExpiry < new Date()) {
-      throw new Error('Expired verification code. Please request a new one.');
+    if (!email || !code) {
+      throw new Error('Email and code are required');
     }
 
-    if (code !== user.verificationCode) {
-      throw new Error('Invalid verification code.');
+    const user = await UserModel.findOne({ email: email.toLowerCase().trim() })
+      .select('+verificationCode +verificationCodeExpiry');
+
+    if (!user) {
+      throw new Error('Invalid email or code');
+    }
+
+    if (!user.verificationCodeExpiry || user.verificationCodeExpiry < new Date()) {
+      throw new Error('Verification code has expired');
+    }
+
+    if (user.verificationCode !== code.trim()) {
+      throw new Error('Invalid verification code');
     }
 
     user.emailVerified = true;
@@ -83,53 +80,97 @@ class AuthService {
     user.verificationCodeExpiry = undefined;
     await user.save();
 
-    return { message: 'Email verified successfully. You can now log in.' };
+    return { message: 'Email verified successfully!' };
+  }
+
+  async login({ email, password }: LoginPayload): Promise<AuthResult> {
+    const user = await UserModel.findOne({ email: email.toLowerCase().trim() }).select('+password');
+
+    if (!user) {
+      throw new Error('Invalid email or password');
+    }
+
+    if (!user.emailVerified) {
+      throw new Error('Please verify your email before logging in');
+    }
+
+    const isPasswordValid = await user.comparePassword(password);
+    if (!isPasswordValid) {
+      throw new Error('Invalid email or password');
+    }
+
+    const token = jwt.sign(
+      { userId: user._id.toString() },
+      process.env.JWT_SECRET as string,
+      { expiresIn: '7d' }
+    );
+
+    return {
+      token,
+      user: this.transformUserToDTO(user),
+    };
   }
 
   async forgotPassword(email: string): Promise<{ message: string }> {
-    const user = await UserModel.findOne({ email });
+    const user = await UserModel.findOne({ email: email.toLowerCase().trim() });
     if (!user) {
-      // Return success even if user doesn't exist (security best practice)
-      return { message: 'If an account exists with this email, a password reset link has been sent.' };
+      return { message: 'If an account exists, a password reset link has been sent.' };
     }
 
-    // Generate reset token
     const resetToken = crypto.randomBytes(32).toString('hex');
-    const resetTokenExpiry = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
-
     user.resetPasswordToken = resetToken;
-    user.resetPasswordExpiry = resetTokenExpiry;
+    user.resetPasswordExpiry = new Date(Date.now() + 60 * 60 * 1000);
     await user.save();
 
-    // Send reset email
-    await sendPasswordResetEmail(email, resetToken, String(user._id));
+    try {
+      await sendPasswordResetEmail(user.email, resetToken, user._id.toString());
+    } catch (error) {
+      console.error('Failed to send password reset email:', error);
+    }
 
-    return { message: 'If an account exists with this email, a password reset link has been sent.' };
+    return { message: 'If an account exists, a password reset link has been sent.' };
   }
 
   async resetPassword(token: string, userId: string, newPassword: string): Promise<{ message: string }> {
-    validatePassword(newPassword);
-    const user = await UserModel.findById(userId).select(
-      '+resetPasswordToken +resetPasswordExpiry +password'
-    );
+    console.log('🔵 Reset password called with token:', token, 'userId:', userId);
+    
+    const user = await UserModel.findOne({
+      _id: new mongoose.Types.ObjectId(userId),
+      resetPasswordToken: token,
+      resetPasswordExpiry: { $gt: new Date() },
+    }).lean();
 
-    if (!user || !user.resetPasswordToken || user.resetPasswordExpiry < new Date()) {
+    if (!user) {
+      console.error('❌ Invalid or expired token');
       throw new Error('Invalid or expired reset token');
     }
 
-    const isTokenValid = token === user.resetPasswordToken;
-    if (!isTokenValid) {
-        throw new Error('Invalid or expired reset token');
+    console.log('✅ User found:', user.email);
+
+    const salt = await bcrypt.genSalt(12);
+    const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+    const result = await mongoose.connection.collection('users').updateOne(
+      { _id: user._id },
+      {
+        $set: { 
+          password: hashedPassword,
+          updatedAt: new Date()
+        },
+        $unset: { 
+          resetPasswordToken: '',
+          resetPasswordExpiry: '' 
+        },
+      }
+    );
+
+    if (result.modifiedCount === 0) {
+      throw new Error('Failed to update password');
     }
 
-    user.password = newPassword;
-    user.resetPasswordToken = undefined;
-    user.resetPasswordExpiry = undefined;
-    await user.save();
-
+    console.log('✅ Password reset successfully for:', user.email);
     return { message: 'Password reset successfully. You can now log in with your new password.' };
   }
 }
 
 export const authService = new AuthService();
-
