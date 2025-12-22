@@ -1,5 +1,4 @@
 // lib/services/email.service.ts
-// ==========================================
 import nodemailer from 'nodemailer';
 
 interface EmailOptions {
@@ -19,6 +18,9 @@ if (!isConfigured) {
 }
 
 const from = `"TaskMate" <${process.env.SMTP_USER || 'noreply@taskmate.app'}>`;
+
+// Hardcoded production URL
+const BASE_URL = 'https://task-mate-next-js-bmsf.vercel.app';
 
 let transporter: nodemailer.Transporter | null = null;
 
@@ -118,8 +120,7 @@ export async function sendVerificationCode(email: string, code: string): Promise
  * Send password reset link
  */
 export async function sendPasswordResetEmail(email: string, token: string, userId: string): Promise<void> {
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
-  const resetUrl = `${baseUrl}/reset-password?token=${token}&userId=${userId}`;
+  const resetUrl = `${BASE_URL}/reset-password?token=${token}&userId=${userId}`;
 
   const html = `
     <!DOCTYPE html>
@@ -198,8 +199,6 @@ export async function sendDailyTaskReminder(
     };
   }>
 ): Promise<void> {
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
-
   const getPriorityEmoji = (priority: string) => {
     const emojis: Record<string, string> = {
       urgent: '🔴',
@@ -260,7 +259,7 @@ export async function sendDailyTaskReminder(
             <p style="margin: 0 0 12px 0; color: #6b7280; font-size: 14px;">
               Category: ${task.categoryId?.icon || '📋'} ${task.categoryId?.name || 'Uncategorized'}
             </p>
-            <a href="${baseUrl}/tasks/${task.id}" style="display: inline-block; padding: 8px 16px; background-color: #FBBF24; color: #1f2937; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 14px;">
+            <a href="${BASE_URL}/tasks/${task.id}" style="display: inline-block; padding: 8px 16px; background-color: #FBBF24; color: #1f2937; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 14px;">
               View Task →
             </a>
           </div>
@@ -307,7 +306,7 @@ export async function sendDailyTaskReminder(
                     </table>
 
                     <div style="text-align: center; margin-top: 32px; padding-top: 32px; border-top: 2px solid #e5e7eb;">
-                      <a href="${baseUrl}/tasks" style="display: inline-block; padding: 14px 32px; background-color: #FBBF24; color: #1f2937; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px;">
+                      <a href="${BASE_URL}/tasks" style="display: inline-block; padding: 14px 32px; background-color: #FBBF24; color: #1f2937; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px;">
                         View All Tasks
                       </a>
                       <p style="margin: 16px 0 0 0; color: #6b7280; font-size: 14px;">
