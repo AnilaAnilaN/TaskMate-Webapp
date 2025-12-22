@@ -96,7 +96,7 @@ export default function Sidebar() {
 
       <div className="p-6 border-t border-gray-200 space-y-1">
         <Link
-          href="/profile"
+          href="/settings"
           className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors ${
             isActive('/profile')
               ? 'bg-gray-100 text-gray-900 font-medium'

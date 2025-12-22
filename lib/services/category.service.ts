@@ -1,6 +1,7 @@
 // lib/services/category.service.ts
 // ==========================================
 import CategoryModel from '@/models/Category.model';
+import TaskModel from '@/models/Task.model';
 
 interface CreateCategoryPayload {
   name: string;
@@ -15,8 +16,19 @@ interface UpdateCategoryPayload {
 }
 
 class CategoryService {
+  /**
+   * Creates default categories including a special "Uncategorized" category
+   * that serves as a fallback for orphaned tasks
+   */
   async createDefaultCategories(userId: string) {
     const defaultCategories = [
+      { 
+        name: 'Uncategorized', 
+        color: '#6B7280', 
+        icon: '📋', 
+        isDefault: true,
+        isUncategorized: true // Special flag for the fallback category
+      },
       { name: 'Work', color: '#8B5CF6', icon: '💼', isDefault: true },
       { name: 'Personal', color: '#3B82F6', icon: '🏠', isDefault: true },
       { name: 'Family', color: '#10B981', icon: '👨‍👩‍👧', isDefault: true },
@@ -28,6 +40,31 @@ class CategoryService {
     );
 
     return categories;
+  }
+
+  /**
+   * Gets the "Uncategorized" category for a user
+   * Creates it if it doesn't exist
+   */
+  async getUncategorizedCategory(userId: string) {
+    let uncategorized = await CategoryModel.findOne({ 
+      userId, 
+      isUncategorized: true 
+    });
+
+    if (!uncategorized) {
+      // Create it if it doesn't exist (for existing users)
+      uncategorized = await CategoryModel.create({
+        userId,
+        name: 'Uncategorized',
+        color: '#6B7280',
+        icon: '📋',
+        isDefault: true,
+        isUncategorized: true
+      });
+    }
+
+    return uncategorized;
   }
 
   async getUserCategories(userId: string) {
@@ -56,6 +93,9 @@ class CategoryService {
     return category;
   }
 
+  /**
+   * Deletes a category and reassigns all its tasks to "Uncategorized"
+   */
   async deleteCategory(userId: string, categoryId: string) {
     const category = await CategoryModel.findOne({ _id: categoryId, userId });
 
@@ -67,8 +107,29 @@ class CategoryService {
       throw new Error('Cannot delete default categories');
     }
 
+    // Get or create the "Uncategorized" category
+    const uncategorized = await this.getUncategorizedCategory(userId);
+
+    // Count tasks that will be affected
+    const taskCount = await TaskModel.countDocuments({
+      userId,
+      categoryId: categoryId
+    });
+
+    // Reassign all tasks from this category to "Uncategorized"
+    await TaskModel.updateMany(
+      { userId, categoryId: categoryId },
+      { $set: { categoryId: uncategorized._id } }
+    );
+
+    // Delete the category
     await CategoryModel.findByIdAndDelete(categoryId);
-    return { message: 'Category deleted successfully' };
+
+    return { 
+      message: 'Category deleted successfully',
+      tasksReassigned: taskCount,
+      newCategoryId: uncategorized._id.toString()
+    };
   }
 }
 

@@ -1,4 +1,5 @@
 // lib/services/email.service.ts
+// ==========================================
 import nodemailer from 'nodemailer';
 
 interface EmailOptions {
@@ -175,6 +176,167 @@ export async function sendPasswordResetEmail(email: string, token: string, userI
   await sendEmail({
     to: email,
     subject: 'Reset Your TaskMate Password',
+    html,
+  });
+}
+
+/**
+ * Send daily task reminder email
+ */
+export async function sendDailyTaskReminder(
+  email: string,
+  userName: string,
+  tasks: Array<{
+    id: string;
+    title: string;
+    priority: string;
+    dueDate: Date;
+    categoryId: {
+      name: string;
+      color: string;
+      icon: string;
+    };
+  }>
+): Promise<void> {
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+
+  const getPriorityEmoji = (priority: string) => {
+    const emojis: Record<string, string> = {
+      urgent: '🔴',
+      high: '🟠',
+      medium: '🟡',
+      low: '🔵',
+    };
+    return emojis[priority] || '⚪';
+  };
+
+  const getPriorityLabel = (priority: string) => {
+    return priority.toUpperCase();
+  };
+
+  // Group tasks by priority
+  const groupedTasks: Record<string, typeof tasks> = {
+    urgent: [],
+    high: [],
+    medium: [],
+    low: [],
+  };
+
+  tasks.forEach(task => {
+    groupedTasks[task.priority]?.push(task);
+  });
+
+  // Generate task list HTML
+  let taskListHtml = '';
+  const priorities = ['urgent', 'high', 'medium', 'low'];
+
+  priorities.forEach(priority => {
+    const tasksInPriority = groupedTasks[priority];
+    if (tasksInPriority.length > 0) {
+      taskListHtml += `
+        <tr>
+          <td style="padding: 20px 0;">
+            <h3 style="margin: 0 0 16px 0; color: #1f2937; font-size: 18px; font-weight: bold;">
+              ${getPriorityEmoji(priority)} ${getPriorityLabel(priority)} PRIORITY
+            </h3>
+            <div style="border-left: 3px solid ${tasksInPriority[0].categoryId?.color || '#6B7280'}; padding-left: 16px;">
+      `;
+
+      tasksInPriority.forEach(task => {
+        const dueTime = new Date(task.dueDate).toLocaleTimeString('en-US', {
+          hour: 'numeric',
+          minute: '2-digit',
+          hour12: true,
+        });
+
+        taskListHtml += `
+          <div style="margin-bottom: 20px; padding: 16px; background-color: #f9fafb; border-radius: 8px;">
+            <p style="margin: 0 0 8px 0; color: #1f2937; font-size: 16px; font-weight: 600;">
+              ${task.title}
+            </p>
+            <p style="margin: 0 0 8px 0; color: #6b7280; font-size: 14px;">
+              Due: Today at ${dueTime}
+            </p>
+            <p style="margin: 0 0 12px 0; color: #6b7280; font-size: 14px;">
+              Category: ${task.categoryId?.icon || '📋'} ${task.categoryId?.name || 'Uncategorized'}
+            </p>
+            <a href="${baseUrl}/tasks/${task.id}" style="display: inline-block; padding: 8px 16px; background-color: #FBBF24; color: #1f2937; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 14px;">
+              View Task →
+            </a>
+          </div>
+        `;
+      });
+
+      taskListHtml += `
+            </div>
+          </td>
+        </tr>
+      `;
+    }
+  });
+
+  const html = `
+    <!DOCTYPE html>
+    <html lang="en">
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Your Tasks for Today</title>
+      </head>
+      <body style="margin: 0; padding: 0; font-family: Arial, Helvetica, sans-serif; background-color: #f9fafb;">
+        <table role="presentation" style="width: 100%; border-collapse: collapse;">
+          <tr>
+            <td style="padding: 40px 20px;">
+              <table role="presentation" style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08);">
+                <tr>
+                  <td style="padding: 40px 30px;">
+                    <div style="text-align: center; margin-bottom: 32px;">
+                      <div style="font-size: 48px; margin-bottom: 16px;">📋</div>
+                      <h1 style="margin: 0 0 12px 0; color: #FBBF24; font-size: 32px; font-weight: bold;">TaskMate</h1>
+                      <h2 style="margin: 0; color: #1f2937; font-size: 24px;">Good morning, ${userName}! 👋</h2>
+                    </div>
+
+                    <div style="background-color: #FEF3C7; border-left: 4px solid #FBBF24; padding: 16px; border-radius: 8px; margin-bottom: 32px;">
+                      <p style="margin: 0; color: #92400E; font-size: 16px; font-weight: 600;">
+                        You have ${tasks.length} task${tasks.length !== 1 ? 's' : ''} due today
+                      </p>
+                    </div>
+
+                    <table role="presentation" style="width: 100%;">
+                      ${taskListHtml}
+                    </table>
+
+                    <div style="text-align: center; margin-top: 32px; padding-top: 32px; border-top: 2px solid #e5e7eb;">
+                      <a href="${baseUrl}/tasks" style="display: inline-block; padding: 14px 32px; background-color: #FBBF24; color: #1f2937; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px;">
+                        View All Tasks
+                      </a>
+                      <p style="margin: 16px 0 0 0; color: #6b7280; font-size: 14px;">
+                        Stay organized! 📊
+                      </p>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding: 24px 30px; text-align: center; background-color: #f9fafb; border-top: 1px solid #e5e7eb;">
+                    <p style="margin: 0 0 8px 0; color: #9ca3af; font-size: 12px;">
+                      © ${new Date().getFullYear()} TaskMate. All rights reserved.
+                    </p>
+                    <p style="margin: 0; color: #9ca3af; font-size: 11px;">
+                      You're receiving this because you have tasks due today.
+                    </p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+      </body>
+    </html>
+  `;
+
+  await sendEmail({
+    to: email,
+    subject: `📋 TaskMate: You have ${tasks.length} task${tasks.length !== 1 ? 's' : ''} due today`,
     html,
   });
 }

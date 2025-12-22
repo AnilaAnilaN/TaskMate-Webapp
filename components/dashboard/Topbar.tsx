@@ -1,12 +1,11 @@
-// ==========================================
-// 7. UPDATED TOPBAR WITH LINK
 // components/dashboard/Topbar.tsx
 // ==========================================
 'use client';
 
-import { Search, Plus, Bell } from 'lucide-react';
+import { Search } from 'lucide-react';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
+import NotificationBell from './NotificationBell';
 
 export default function Topbar() {
   const [userName, setUserName] = useState('User');
@@ -35,18 +34,17 @@ export default function Topbar() {
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
           <input
             type="text"
-            placeholder="Search"
+            placeholder="Search tasks..."
             className="w-full pl-10 pr-4 py-2.5 bg-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-yellow-400 text-sm"
           />
         </div>
       </div>
 
       <div className="flex items-center gap-3">
-       
-        <button className="p-2 hover:bg-gray-100 rounded-xl">
-          <Bell className="w-5 h-5 text-gray-600" />
-        </button>
+        {/* Notification Bell with Badge */}
+        <NotificationBell />
 
+        {/* Profile Avatar */}
         <Link
           href="/profile"
           className="w-9 h-9 bg-yellow-400 rounded-full flex items-center justify-center font-bold text-gray-900 text-sm hover:bg-yellow-500 hover:scale-105 transition-all"

@@ -7,6 +7,8 @@ export interface ICategory extends Document {
   name: string;
   color: string;
   icon: string;
+  isDefault: boolean;
+  isUncategorized?: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -21,21 +23,24 @@ const CategorySchema = new Schema(
     },
     name: {
       type: String,
-      required: [true, 'Category name is required'],
+      required: true,
       trim: true,
-      maxlength: [50, 'Category name cannot exceed 50 characters'],
     },
     color: {
       type: String,
-      required: [true, 'Color is required'],
-      trim: true,
-      maxlength: [20, 'Color cannot exceed 20 characters'],
+      required: true,
     },
     icon: {
       type: String,
-      required: [true, 'Icon is required'],
-      trim: true,
-      maxlength: [50, 'Icon key cannot exceed 50 characters'],
+      required: true,
+    },
+    isDefault: {
+      type: Boolean,
+      default: false,
+    },
+    isUncategorized: {
+      type: Boolean,
+      default: false,
     },
   },
   {
@@ -51,6 +56,7 @@ const CategorySchema = new Schema(
   }
 );
 
+// Compound index for efficient queries
 CategorySchema.index({ userId: 1, name: 1 });
 
 const CategoryModel: Model<ICategory> = mongoose.models.Category

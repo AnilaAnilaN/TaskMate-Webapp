@@ -15,6 +15,7 @@ interface Category {
   color: string;
   icon: string;
   isDefault: boolean;
+  isUncategorized?: boolean;
 }
 
 export default function CategoriesClient() {
@@ -25,7 +26,6 @@ export default function CategoriesClient() {
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  // ✅ Move fetchCategories outside useEffect so it can be reused
   const fetchCategories = async () => {
     try {
       const response = await fetch('/api/categories', { cache: 'no-store' });
@@ -45,26 +45,39 @@ export default function CategoriesClient() {
     fetchCategories();
   }, []);
 
-  const handleDelete = async (categoryId: string, isDefault: boolean) => {
-    if (isDefault) {
+  const handleDelete = async (category: Category) => {
+    if (category.isDefault) {
       alert('Cannot delete default categories');
       return;
     }
 
-    if (!confirm('Are you sure you want to delete this category? Tasks in this category will need to be reassigned.')) {
+    const message = category.isUncategorized 
+      ? 'Cannot delete the Uncategorized category. It is used for tasks without a category.'
+      : 'Are you sure you want to delete this category? All tasks in this category will be moved to "Uncategorized".';
+
+    if (category.isUncategorized) {
+      alert(message);
       return;
     }
 
-    setDeletingId(categoryId);
+    if (!confirm(message)) {
+      return;
+    }
+
+    setDeletingId(category.id);
     try {
-      const response = await fetch(`/api/categories/${categoryId}`, {
+      const response = await fetch(`/api/categories/${category.id}`, {
         method: 'DELETE',
       });
 
       const data = await response.json();
 
       if (response.ok) {
-        await fetchCategories(); // ✅ Now this works
+        // Show success message with reassignment info
+        if (data.tasksReassigned > 0) {
+          alert(`Category deleted successfully. ${data.tasksReassigned} task(s) moved to "Uncategorized".`);
+        }
+        await fetchCategories();
       } else {
         alert(data.error || 'Failed to delete category');
       }
@@ -116,7 +129,10 @@ export default function CategoriesClient() {
           <AlertCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
           <div className="flex-1">
             <p className="text-sm text-blue-900 font-medium">Default categories cannot be deleted</p>
-            <p className="text-sm text-blue-700 mt-1">They help organize your tasks from the start. You can edit their names, colors, and icons.</p>
+            <p className="text-sm text-blue-700 mt-1">
+              When you delete a custom category, all its tasks are automatically moved to "Uncategorized". 
+              You can edit category names, colors, and icons at any time.
+            </p>
           </div>
         </div>
 
@@ -125,6 +141,7 @@ export default function CategoriesClient() {
           {categories.map((category) => {
             const IconComponent = getCategoryIcon(category.icon);
             const isDeleting = deletingId === category.id;
+            const cannotDelete = category.isDefault || category.isUncategorized;
 
             return (
               <div
@@ -144,11 +161,20 @@ export default function CategoriesClient() {
                       Default
                     </span>
                   )}
+                  {category.isUncategorized && !category.isDefault && (
+                    <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs font-medium rounded-lg">
+                      System
+                    </span>
+                  )}
                 </div>
 
                 <h3 className="text-lg font-semibold text-gray-900 mb-1">{category.name}</h3>
                 <p className="text-sm text-gray-500 mb-4">
-                  {category.isDefault ? 'Built-in category' : 'Custom category'}
+                  {category.isUncategorized 
+                    ? 'Fallback for orphaned tasks' 
+                    : category.isDefault 
+                      ? 'Built-in category' 
+                      : 'Custom category'}
                 </p>
 
                 <div className="flex gap-2">
@@ -161,10 +187,11 @@ export default function CategoriesClient() {
                   </button>
                   
                   <button
-                    onClick={() => handleDelete(category.id, category.isDefault)}
-                    disabled={category.isDefault || isDeleting}
+                    onClick={() => handleDelete(category)}
+                    disabled={cannotDelete || isDeleting}
+                    title={cannotDelete ? 'Cannot delete this category' : 'Delete category'}
                     className={`flex-1 px-3 py-2 rounded-xl text-sm font-medium flex items-center justify-center gap-2 transition-colors ${
-                      category.isDefault
+                      cannotDelete
                         ? 'bg-gray-50 text-gray-400 cursor-not-allowed'
                         : 'bg-red-100 hover:bg-red-200 text-red-700'
                     }`}
@@ -197,7 +224,7 @@ export default function CategoriesClient() {
         onClose={() => setShowAddModal(false)}
         onSuccess={() => {
           setShowAddModal(false);
-          fetchCategories(); // ✅ Simplified
+          fetchCategories();
         }}
       />
 
@@ -208,7 +235,7 @@ export default function CategoriesClient() {
           onClose={() => setEditingCategory(null)}
           onSuccess={() => {
             setEditingCategory(null);
-            fetchCategories(); // ✅ Simplified
+            fetchCategories();
           }}
         />
       )}

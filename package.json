@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "migrate:uncategorized": "tsx scripts/migrate-add-uncategorized.ts",
+    "migrate": "tsx scripts/migrate-add-uncategorized.ts"
   },
   "dependencies": {
     "@tiptap/extension-color": "^3.14.0",
@@ -37,6 +39,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.0.10",
     "tailwindcss": "^4",
+    "tsx": "^4.21.0",
     "typescript": "^5"
   }
 }

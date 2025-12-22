@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { 
   ArrowLeft, Edit2, Trash2, Clock, Calendar, Flag, 
-  Play, Pause, Save, X, CheckCircle, Circle 
+  Play, Pause, Save, X, CheckCircle, Circle, AlertTriangle 
 } from 'lucide-react';
 import { getCategoryIcon } from '@/lib/config/categoryIcons';
 import { useTimer } from '@/lib/contexts/TimerContext';
@@ -62,6 +62,9 @@ export default function TaskDetailClient() {
   // Display timer
   const [displayTime, setDisplayTime] = useState(0);
   const isTracking = isTimerActive(taskId);
+
+  // Check if category is deleted/invalid
+  const isCategoryDeleted = task?.categoryId?.id === 'deleted';
 
   useEffect(() => {
     fetchTask();
@@ -124,6 +127,12 @@ export default function TaskDetailClient() {
   const handleSave = async () => {
     if (!editTitle.trim()) return;
 
+    // Validate category selection
+    if (editCategoryId === 'deleted') {
+      alert('Please select a valid category');
+      return;
+    }
+
     try {
       const updateData = {
         title: editTitle.trim(),
@@ -144,9 +153,13 @@ export default function TaskDetailClient() {
       if (response.ok) {
         await fetchTask();
         setIsEditing(false);
+      } else {
+        const data = await response.json();
+        alert(data.error || 'Failed to update task');
       }
     } catch (error) {
       console.error('Failed to update task:', error);
+      alert('Failed to update task');
     }
   };
 
@@ -297,6 +310,25 @@ export default function TaskDetailClient() {
         </div>
       </div>
 
+      {/* Deleted Category Warning */}
+      {isCategoryDeleted && !isEditing && (
+        <div className="bg-orange-50 border border-orange-200 rounded-xl p-4 flex items-start gap-3">
+          <AlertTriangle className="w-5 h-5 text-orange-600 flex-shrink-0 mt-0.5" />
+          <div className="flex-1">
+            <p className="text-sm text-orange-900 font-medium">This task's category has been deleted</p>
+            <p className="text-sm text-orange-700 mt-1">
+              Please edit this task and assign it to a valid category to properly organize it.
+            </p>
+          </div>
+          <button
+            onClick={() => setIsEditing(true)}
+            className="px-3 py-1.5 bg-orange-600 hover:bg-orange-700 text-white rounded-lg text-sm font-medium transition-colors"
+          >
+            Fix Now
+          </button>
+        </div>
+      )}
+
       {/* Main Content */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left Column */}
@@ -342,12 +374,15 @@ export default function TaskDetailClient() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Category</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Category {isCategoryDeleted && <span className="text-orange-600">(Current category is deleted - please select a valid one)</span>}
+                  </label>
                   <div className="grid grid-cols-3 gap-2">
                     {categories.map((cat) => {
                       const CatIcon = getCategoryIcon(cat.icon);
+                      const isSelected = editCategoryId === cat.id;
                       return (
-                        <button key={cat.id} type="button" onClick={() => setEditCategoryId(cat.id)} className={`p-3 rounded-xl border-2 transition-all ${editCategoryId === cat.id ? 'border-yellow-400 bg-yellow-50' : 'border-gray-200 hover:border-gray-300'}`}>
+                        <button key={cat.id} type="button" onClick={() => setEditCategoryId(cat.id)} className={`p-3 rounded-xl border-2 transition-all ${isSelected ? 'border-yellow-400 bg-yellow-50' : 'border-gray-200 hover:border-gray-300'}`}>
                           <div className="w-8 h-8 rounded-lg mx-auto mb-1 flex items-center justify-center" style={{ backgroundColor: `${cat.color}20` }}>
                             <CatIcon className="w-4 h-4" style={{ color: cat.color }} />
                           </div>
@@ -390,9 +425,13 @@ export default function TaskDetailClient() {
                 </div>
 
                 <div className="flex flex-wrap gap-3 pt-4 border-t border-gray-100">
-                  <div className="flex items-center gap-2 px-3 py-2 rounded-lg" style={{ backgroundColor: `${task.categoryId.color}20` }}>
+                  <div 
+                    className={`flex items-center gap-2 px-3 py-2 rounded-lg ${isCategoryDeleted ? 'bg-orange-100 border border-orange-300' : ''}`}
+                    style={!isCategoryDeleted ? { backgroundColor: `${task.categoryId.color}20` } : {}}
+                  >
                     <IconComponent className="w-4 h-4" style={{ color: task.categoryId.color }} />
                     <span className="font-medium text-gray-700">{task.categoryId.name}</span>
+                    {isCategoryDeleted && <AlertTriangle className="w-4 h-4 text-orange-600 ml-1" />}
                   </div>
 
                   <span className={`px-3 py-2 rounded-lg text-sm font-medium ${getPriorityColor(task.priority)}`}>
