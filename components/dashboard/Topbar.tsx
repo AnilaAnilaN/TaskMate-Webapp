@@ -1,5 +1,4 @@
 // components/dashboard/Topbar.tsx
-// ==========================================
 'use client';
 
 import { Search } from 'lucide-react';
@@ -28,26 +27,28 @@ export default function Topbar() {
   };
 
   return (
-    <div className="flex items-center justify-between mb-8">
+    <div className="flex items-center justify-between gap-4 mb-6 md:mb-8">
+      {/* Search Bar - Responsive Width */}
       <div className="flex-1 max-w-md">
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 md:w-5 md:h-5 text-gray-400" />
           <input
             type="text"
-            placeholder="Search tasks..."
-            className="w-full pl-10 pr-4 py-2.5 bg-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-yellow-400 text-sm"
+            placeholder="Search..."
+            className="w-full pl-9 md:pl-10 pr-4 py-2 md:py-2.5 bg-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-yellow-400 text-sm placeholder:text-gray-400"
           />
         </div>
       </div>
 
-      <div className="flex items-center gap-3">
+      {/* Right Section - User Actions */}
+      <div className="flex items-center gap-2 md:gap-3">
         {/* Notification Bell with Badge */}
         <NotificationBell />
 
         {/* Profile Avatar */}
         <Link
           href="/profile"
-          className="w-9 h-9 bg-yellow-400 rounded-full flex items-center justify-center font-bold text-gray-900 text-sm hover:bg-yellow-500 hover:scale-105 transition-all"
+          className="w-8 h-8 md:w-9 md:h-9 bg-yellow-400 rounded-full flex items-center justify-center font-bold text-gray-900 text-xs md:text-sm hover:bg-yellow-500 hover:scale-105 transition-all flex-shrink-0"
           title="View Profile"
         >
           {loading ? '...' : getInitials(userName)}
