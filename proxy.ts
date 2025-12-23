@@ -6,13 +6,13 @@ export function proxy(request: NextRequest) {
   const hasAuthToken = request.cookies.has('auth-token');
   const path = request.nextUrl.pathname;
 
-  // Root path: redirect based on auth status
+  // Root path: redirect ONLY if logged in (let guests see landing page)
   if (path === '/') {
     if (hasAuthToken) {
       return NextResponse.redirect(new URL('/dashboard', request.url));
-    } else {
-      return NextResponse.redirect(new URL('/auth', request.url));
     }
+    // If NOT logged in, let the request continue to show landing page
+    return NextResponse.next();
   }
 
   // Auth page: if logged in, go to dashboard

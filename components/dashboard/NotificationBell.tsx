@@ -1,5 +1,4 @@
 // components/dashboard/NotificationBell.tsx
-// ==========================================
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
@@ -31,6 +30,7 @@ export default function NotificationBell() {
   const [unreadCount, setUnreadCount] = useState(0);
   const [showDropdown, setShowDropdown] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -60,26 +60,41 @@ export default function NotificationBell() {
   const fetchNotifications = async () => {
     try {
       const response = await fetch('/api/notifications?limit=10', { cache: 'no-store' });
+      
+      // Handle non-OK responses
+      if (!response.ok) {
+        const text = await response.text();
+        console.error('Failed to fetch notifications:', response.status, text);
+        setError('Unable to load notifications');
+        return;
+      }
+
       const data = await response.json();
 
-      if (response.ok) {
-        console.log('Fetched notifications:', data.notifications); // Debug
+      if (data && data.notifications) {
+        console.log('Fetched notifications:', data.notifications);
         setNotifications(data.notifications);
-        setUnreadCount(data.unreadCount);
+        setUnreadCount(data.unreadCount || 0);
+        setError(null);
       } else {
-        console.error('Failed to fetch notifications:', data);
+        console.error('Invalid notification data:', data);
+        setError('Invalid notification data');
       }
     } catch (error) {
       console.error('Failed to fetch notifications:', error);
+      setError('Network error');
     }
   };
 
   const checkForNewNotifications = async () => {
     try {
-      await fetch('/api/notifications', {
+      const response = await fetch('/api/notifications', {
         method: 'POST',
       });
-      fetchNotifications();
+      
+      if (response.ok) {
+        fetchNotifications();
+      }
     } catch (error) {
       console.error('Failed to check notifications:', error);
     }
@@ -88,7 +103,7 @@ export default function NotificationBell() {
   const handleMarkAsRead = async (notificationId: string, e: React.MouseEvent) => {
     e.stopPropagation();
     
-    console.log('Marking as read, notification ID:', notificationId); // Debug
+    console.log('Marking as read, notification ID:', notificationId);
     
     if (!notificationId) {
       console.error('Invalid notification ID');
@@ -103,29 +118,29 @@ export default function NotificationBell() {
         },
       });
 
-      const data = await response.json();
-      console.log('Mark as read response:', response.status, data); // Debug
-
-      if (response.ok) {
-        // Update local state immediately
-        setNotifications(prev => 
-          prev.map(n => n.id === notificationId ? { ...n, isRead: true } : n)
-        );
-        setUnreadCount(prev => Math.max(0, prev - 1));
-      } else {
-        console.error('Failed to mark as read:', data);
-        alert('Failed to mark notification as read');
+      if (!response.ok) {
+        const text = await response.text();
+        console.error('Failed to mark as read:', response.status, text);
+        return;
       }
+
+      const data = await response.json();
+      console.log('Mark as read response:', data);
+
+      // Update local state immediately
+      setNotifications(prev => 
+        prev.map(n => n.id === notificationId ? { ...n, isRead: true } : n)
+      );
+      setUnreadCount(prev => Math.max(0, prev - 1));
     } catch (error) {
       console.error('Failed to mark as read:', error);
-      alert('Failed to mark notification as read');
     }
   };
 
   const handleDismiss = async (notificationId: string, e: React.MouseEvent) => {
     e.stopPropagation();
     
-    console.log('Dismissing notification ID:', notificationId); // Debug
+    console.log('Dismissing notification ID:', notificationId);
     
     if (!notificationId) {
       console.error('Invalid notification ID');
@@ -137,23 +152,23 @@ export default function NotificationBell() {
         method: 'DELETE',
       });
 
-      const data = await response.json();
-      console.log('Dismiss response:', response.status, data); // Debug
-
-      if (response.ok) {
-        // Remove from local state immediately
-        setNotifications(prev => prev.filter(n => n.id !== notificationId));
-        setUnreadCount(prev => {
-          const notification = notifications.find(n => n.id === notificationId);
-          return notification && !notification.isRead ? Math.max(0, prev - 1) : prev;
-        });
-      } else {
-        console.error('Failed to dismiss:', data);
-        alert('Failed to dismiss notification');
+      if (!response.ok) {
+        const text = await response.text();
+        console.error('Failed to dismiss:', response.status, text);
+        return;
       }
+
+      const data = await response.json();
+      console.log('Dismiss response:', data);
+
+      // Remove from local state immediately
+      setNotifications(prev => prev.filter(n => n.id !== notificationId));
+      setUnreadCount(prev => {
+        const notification = notifications.find(n => n.id === notificationId);
+        return notification && !notification.isRead ? Math.max(0, prev - 1) : prev;
+      });
     } catch (error) {
       console.error('Failed to dismiss notification:', error);
-      alert('Failed to dismiss notification');
     }
   };
 
@@ -165,7 +180,6 @@ export default function NotificationBell() {
       });
 
       if (response.ok) {
-        // Update all notifications to read in local state
         setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
         setUnreadCount(0);
       } else {
@@ -179,7 +193,7 @@ export default function NotificationBell() {
   };
 
   const handleNotificationClick = (notification: Notification) => {
-    console.log('Notification clicked:', notification); // Debug
+    console.log('Notification clicked:', notification);
     
     if (!notification.isRead) {
       handleMarkAsRead(notification.id, {} as React.MouseEvent);
@@ -210,9 +224,9 @@ export default function NotificationBell() {
         onClick={() => setShowDropdown(!showDropdown)}
         className="relative p-2 hover:bg-gray-100 rounded-xl transition-colors"
       >
-        <Bell className="w-6 h-6 text-gray-600" />
+        <Bell className="w-5 h-5 md:w-6 md:h-6 text-gray-600" />
         {unreadCount > 0 && (
-          <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center">
+          <span className="absolute -top-1 -right-1 w-4 h-4 md:w-5 md:h-5 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center">
             {unreadCount > 9 ? '9+' : unreadCount}
           </span>
         )}
@@ -220,9 +234,9 @@ export default function NotificationBell() {
 
       {/* Dropdown */}
       {showDropdown && (
-        <div className="absolute right-0 mt-2 w-96 bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden z-50">
+        <div className="absolute right-0 mt-2 w-[calc(100vw-2rem)] md:w-96 bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden z-50">
           {/* Header */}
-          <div className="p-4 border-b border-gray-200 bg-linear-to-r from-yellow-50 to-white">
+          <div className="p-4 border-b border-gray-200 bg-gradient-to-r from-yellow-50 to-white">
             <div className="flex items-center justify-between mb-2">
               <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
                 <Bell className="w-5 h-5" />
@@ -250,7 +264,18 @@ export default function NotificationBell() {
 
           {/* Notifications List */}
           <div className="max-h-96 overflow-y-auto">
-            {notifications.length === 0 ? (
+            {error ? (
+              <div className="p-8 text-center">
+                <Bell className="w-12 h-12 mx-auto mb-3 text-red-300" />
+                <p className="text-red-500 text-sm font-medium">{error}</p>
+                <button
+                  onClick={fetchNotifications}
+                  className="mt-3 text-sm text-yellow-600 hover:text-yellow-700 font-medium"
+                >
+                  Try again
+                </button>
+              </div>
+            ) : notifications.length === 0 ? (
               <div className="p-8 text-center">
                 <Bell className="w-12 h-12 mx-auto mb-3 text-gray-300" />
                 <p className="text-gray-500 text-sm">No notifications yet</p>
@@ -332,7 +357,7 @@ export default function NotificationBell() {
           </div>
 
           {/* Footer */}
-          {notifications.length > 0 && (
+          {notifications.length > 0 && !error && (
             <div className="p-3 border-t border-gray-200 bg-gray-50">
               <button
                 onClick={() => {
