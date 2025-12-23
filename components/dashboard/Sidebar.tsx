@@ -1,7 +1,7 @@
 // components/dashboard/Sidebar.tsx
 'use client';
 
-import { Calendar, Bell, FolderOpen, Settings, LogOut, Menu, X } from 'lucide-react';
+import { Calendar, Bell, FolderOpen, Settings, LogOut, Menu, X, MessageCircle } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
@@ -64,6 +64,7 @@ export default function Sidebar() {
     { href: '/dashboard', icon: Calendar, label: 'Dashboard' },
     { href: '/dashboard/categories', icon: FolderOpen, label: 'Categories' },
     { href: '/tasks', icon: null, label: 'My tasks' },
+    { href: '/chat', icon: MessageCircle, label: 'Messages' }, // 🆕 NEW - Chat
     { href: '/notifications', icon: Bell, label: 'Notifications' },
   ];
 
@@ -88,6 +89,8 @@ export default function Sidebar() {
             const Icon = item.icon;
             const active = item.href === '/tasks' 
               ? isActive('/tasks') || pathname.startsWith('/tasks/')
+              : item.href === '/chat'
+              ? isActive('/chat') || pathname.startsWith('/chat/')
               : isActive(item.href);
 
             return (
