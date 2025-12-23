@@ -1,4 +1,6 @@
-// app/api/chat/messages/route.ts
+// ============================================
+// 3. app/api/chat/messages/route.ts
+// ============================================
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import jwt from 'jsonwebtoken';
@@ -17,14 +19,12 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as {
-      userId: string;
-    };
+    jwt.verify(token, process.env.JWT_SECRET as string);
 
     const { searchParams } = new URL(request.url);
     const conversationId = searchParams.get('conversationId');
     const limit = parseInt(searchParams.get('limit') || '50');
-    const before = searchParams.get('before'); // For pagination
+    const before = searchParams.get('before');
 
     if (!conversationId) {
       return NextResponse.json(
@@ -48,7 +48,7 @@ export async function GET(request: NextRequest) {
       .lean();
 
     return NextResponse.json({
-      messages: messages.reverse(), // Oldest first
+      messages: messages.reverse(),
     });
   } catch (error) {
     console.error('Failed to fetch messages:', error);

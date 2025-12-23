@@ -75,6 +75,12 @@ const UserSchema = new Schema(
       default: '',
       maxlength: [500, 'Bio cannot exceed 500 characters'],
     },
+
+    lastSeen: {
+  type: Date,
+  default: Date.now,
+  index: true,
+},
   },
   {
     timestamps: true,
@@ -90,6 +96,8 @@ const UserSchema = new Schema(
         delete ret.resetPasswordExpiry;
         return ret;
       },
+
+    
     },
   }
 );

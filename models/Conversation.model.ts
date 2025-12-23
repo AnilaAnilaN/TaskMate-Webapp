@@ -61,7 +61,9 @@ ConversationSchema.index({ participants: 1 });
 // Pre-save hook with proper async syntax
 ConversationSchema.pre('save', async function () {
   if (this.isModified('participants')) {
-    this.participants.sort((a, b) => a.toString().localeCompare(b.toString()));
+    this.participants.sort((a: mongoose.Types.ObjectId, b: mongoose.Types.ObjectId) => 
+      a.toString().localeCompare(b.toString())
+    );
   }
 });
 

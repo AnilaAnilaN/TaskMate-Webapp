@@ -1,4 +1,6 @@
-// app/api/chat/send/route.ts
+// ============================================
+// 5. app/api/chat/send/route.ts
+// ============================================
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import jwt from 'jsonwebtoken';

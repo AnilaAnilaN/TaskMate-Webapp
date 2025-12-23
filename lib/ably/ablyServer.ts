@@ -1,4 +1,5 @@
-// lib/ably/ablyServer.ts
+// 6. lib/ably/ablyServer.ts
+// ============================================
 import Ably from 'ably';
 
 let ablyServer: Ably.Rest | null = null;
@@ -8,7 +9,7 @@ export function getAblyServer(): Ably.Rest {
     const apiKey = process.env.ABLY_API_KEY;
     
     if (!apiKey) {
-      throw new Error('ABLY_API_KEY is not configured');
+      throw new Error('ABLY_API_KEY is not configured in environment variables');
     }
 
     ablyServer = new Ably.Rest({ key: apiKey });
@@ -17,7 +18,6 @@ export function getAblyServer(): Ably.Rest {
   return ablyServer;
 }
 
-// Helper to publish messages from server
 export async function publishMessage(
   channelName: string,
   eventName: string,
@@ -28,7 +28,6 @@ export async function publishMessage(
   await channel.publish(eventName, data);
 }
 
-// Helper to generate auth tokens for clients
 export async function generateAblyToken(clientId: string): Promise<string> {
   const ably = getAblyServer();
   const tokenRequest = await ably.auth.createTokenRequest({

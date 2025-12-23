@@ -1,4 +1,7 @@
+// ============================================
+// 3. Updated ChatWindow.tsx (import from shared types)
 // components/chat/ChatWindow.tsx
+// ============================================
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
@@ -6,18 +9,7 @@ import { Send, ArrowLeft, MoreVertical, Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import MessageBubble from './MessageBubble';
 import { useAbly } from './AblyProvider';
-
-interface Message {
-  id: string;
-  text: string;
-  senderId: {
-    id: string;
-    name: string;
-    profileImage?: string | null;
-  };
-  timestamp: Date;
-  isRead: boolean;
-}
+import type { Message } from '@/types/chat';
 
 interface ChatWindowProps {
   recipientId: string;
@@ -33,14 +25,31 @@ export default function ChatWindow({ recipientId, currentUserId }: ChatWindowPro
   const [sending, setSending] = useState(false);
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [recipient, setRecipient] = useState<any>(null);
+  const [isRecipientOnline, setIsRecipientOnline] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const channelRef = useRef<any>(null);
+  const presenceChannelRef = useRef<any>(null);
+
+  const getMessageId = (message: Message): string => {
+    return message.id || message._id || `temp-${Date.now()}-${Math.random()}`;
+  };
+
+  const getSenderId = (message: Message): string => {
+    if (typeof message.senderId === 'string') {
+      return message.senderId;
+    }
+    return message.senderId?.id || message.senderId?._id || '';
+  };
 
   useEffect(() => {
     initializeChat();
     return () => {
       if (channelRef.current) {
         channelRef.current.unsubscribe();
+      }
+      if (presenceChannelRef.current) {
+        presenceChannelRef.current.presence.leave();
+        presenceChannelRef.current.presence.unsubscribe();
       }
     };
   }, [recipientId]);
@@ -52,12 +61,12 @@ export default function ChatWindow({ recipientId, currentUserId }: ChatWindowPro
   useEffect(() => {
     if (conversationId && client && isConnected) {
       subscribeToChannel();
+      subscribeToPresence();
     }
   }, [conversationId, client, isConnected]);
 
   const initializeChat = async () => {
     try {
-      // Get or create conversation
       const convResponse = await fetch('/api/chat/conversations', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -67,21 +76,19 @@ export default function ChatWindow({ recipientId, currentUserId }: ChatWindowPro
       if (!convResponse.ok) throw new Error('Failed to get conversation');
 
       const { conversation } = await convResponse.json();
-      setConversationId(conversation.id);
+      setConversationId(conversation.id || conversation._id);
       setRecipient(conversation.otherUser);
 
-      // Fetch messages
       const messagesResponse = await fetch(
-        `/api/chat/messages?conversationId=${conversation.id}`
+        `/api/chat/messages?conversationId=${conversation.id || conversation._id}`
       );
 
       if (messagesResponse.ok) {
         const data = await messagesResponse.json();
-        setMessages(data.messages);
+        setMessages(data.messages || []);
       }
 
-      // Mark messages as read
-      await fetch(`/api/chat/messages/${conversation.id}`, {
+      await fetch(`/api/chat/messages/${conversation.id || conversation._id}`, {
         method: 'PUT',
       });
     } catch (error) {
@@ -98,15 +105,55 @@ export default function ChatWindow({ recipientId, currentUserId }: ChatWindowPro
     
     channel.subscribe('message', (message: any) => {
       const newMessage = message.data;
-      setMessages((prev) => [...prev, newMessage]);
       
-      // Mark as read if it's from the other user
-      if (newMessage.senderId.id !== currentUserId) {
+      const messageId = newMessage.id || newMessage._id;
+      setMessages((prev) => {
+        const exists = prev.some(m => 
+          (m.id || m._id) === messageId
+        );
+        if (exists) return prev;
+        return [...prev, newMessage];
+      });
+      
+      const senderId = getSenderId(newMessage);
+      if (senderId !== currentUserId) {
         markAsRead();
       }
     });
 
     channelRef.current = channel;
+  };
+
+  const subscribeToPresence = async () => {
+    if (!client || !conversationId) return;
+
+    const presenceChannel = client.channels.get(`presence:${conversationId}`);
+    
+    await presenceChannel.presence.enter({ userId: currentUserId });
+
+    try {
+      const members = await presenceChannel.presence.get();
+      const recipientPresent = members?.some((member: any) => 
+        member.data?.userId === recipientId
+      );
+      setIsRecipientOnline(recipientPresent || false);
+    } catch (err) {
+      console.error('Failed to get presence:', err);
+    }
+
+    presenceChannel.presence.subscribe('enter', (member: any) => {
+      if (member.data?.userId === recipientId) {
+        setIsRecipientOnline(true);
+      }
+    });
+
+    presenceChannel.presence.subscribe('leave', (member: any) => {
+      if (member.data?.userId === recipientId) {
+        setIsRecipientOnline(false);
+      }
+    });
+
+    presenceChannelRef.current = presenceChannel;
   };
 
   const markAsRead = async () => {
@@ -142,8 +189,6 @@ export default function ChatWindow({ recipientId, currentUserId }: ChatWindowPro
       });
 
       if (!response.ok) throw new Error('Failed to send message');
-
-      // Message will be added via Ably subscription
     } catch (error) {
       console.error('Failed to send message:', error);
       setMessageText(tempText);
@@ -171,7 +216,6 @@ export default function ChatWindow({ recipientId, currentUserId }: ChatWindowPro
 
   return (
     <div className="flex flex-col h-full bg-white">
-      {/* Header */}
       <div className="p-4 border-b border-gray-200 bg-white flex items-center gap-4">
         <button
           onClick={() => router.push('/chat')}
@@ -180,17 +224,21 @@ export default function ChatWindow({ recipientId, currentUserId }: ChatWindowPro
           <ArrowLeft className="w-5 h-5 text-gray-600" />
         </button>
 
-        {/* Recipient Info */}
         <div className="flex items-center gap-3 flex-1">
-          <div className="w-10 h-10 bg-yellow-400 rounded-full flex items-center justify-center font-bold text-gray-900">
-            {recipient?.profileImage ? (
-              <img
-                src={recipient.profileImage}
-                alt={recipient.name}
-                className="w-full h-full rounded-full object-cover"
-              />
-            ) : (
-              getInitials(recipient?.name || '')
+          <div className="relative">
+            <div className="w-10 h-10 bg-yellow-400 rounded-full flex items-center justify-center font-bold text-gray-900">
+              {recipient?.profileImage ? (
+                <img
+                  src={recipient.profileImage}
+                  alt={recipient.name}
+                  className="w-full h-full rounded-full object-cover"
+                />
+              ) : (
+                getInitials(recipient?.name || '')
+              )}
+            </div>
+            {isRecipientOnline && (
+              <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></div>
             )}
           </div>
           <div className="flex-1 min-w-0">
@@ -198,7 +246,7 @@ export default function ChatWindow({ recipientId, currentUserId }: ChatWindowPro
               {recipient?.name}
             </h2>
             <p className="text-xs text-gray-500">
-              {isConnected ? 'Online' : 'Offline'}
+              {isRecipientOnline ? 'Online' : 'Offline'}
             </p>
           </div>
         </div>
@@ -208,7 +256,6 @@ export default function ChatWindow({ recipientId, currentUserId }: ChatWindowPro
         </button>
       </div>
 
-      {/* Messages */}
       <div className="flex-1 overflow-y-auto p-4 bg-gray-50">
         {messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-center px-4">
@@ -224,19 +271,23 @@ export default function ChatWindow({ recipientId, currentUserId }: ChatWindowPro
           </div>
         ) : (
           <>
-            {messages.map((message) => (
-              <MessageBubble
-                key={message.id}
-                message={message}
-                isOwnMessage={message.senderId.id === currentUserId}
-              />
-            ))}
+            {messages.map((message) => {
+              const messageId = getMessageId(message);
+              const messageSenderId = getSenderId(message);
+              
+              return (
+                <MessageBubble
+                  key={messageId}
+                  message={message}
+                  isOwnMessage={messageSenderId === currentUserId}
+                />
+              );
+            })}
             <div ref={messagesEndRef} />
           </>
         )}
       </div>
 
-      {/* Input */}
       <form onSubmit={sendMessage} className="p-4 border-t border-gray-200 bg-white">
         <div className="flex items-end gap-2">
           <textarea

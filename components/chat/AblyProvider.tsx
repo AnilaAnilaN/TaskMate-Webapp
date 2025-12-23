@@ -1,3 +1,6 @@
+// ============================================
+// 3. Updated AblyProvider with Global Presence
+// ============================================
 // components/chat/AblyProvider.tsx
 'use client';
 
@@ -14,7 +17,13 @@ const AblyContext = createContext<AblyContextType>({
   isConnected: false,
 });
 
-export function AblyProvider({ children }: { children: React.ReactNode }) {
+export function AblyProvider({ 
+  children,
+  userId 
+}: { 
+  children: React.ReactNode;
+  userId?: string;
+}) {
   const [client, setClient] = useState<Ably.Realtime | null>(null);
   const [isConnected, setIsConnected] = useState(false);
 
@@ -23,16 +32,14 @@ export function AblyProvider({ children }: { children: React.ReactNode }) {
 
     const initAbly = async () => {
       try {
-        // Fetch auth token from our API
         const response = await fetch('/api/chat/ably-token');
+        const data = await response.json();
+        
         if (!response.ok) {
-          throw new Error('Failed to fetch Ably token');
+          console.error('Ably token error:', data);
+          throw new Error(data.error || 'Failed to fetch Ably token');
         }
 
-        const { tokenRequest } = await response.json();
-        const parsedTokenRequest = JSON.parse(tokenRequest);
-
-        // Initialize Ably client
         ablyClient = new Ably.Realtime({
           authCallback: async (data, callback) => {
             try {
@@ -45,10 +52,19 @@ export function AblyProvider({ children }: { children: React.ReactNode }) {
           },
         });
 
-        // Wait for connection
-        ablyClient.connection.on('connected', () => {
+        ablyClient.connection.on('connected', async () => {
           console.log('✅ Ably connected');
           setIsConnected(true);
+          
+          // Enter global presence when connected
+          if (userId) {
+            const presenceChannel = ablyClient!.channels.get('global:presence');
+            try {
+              await presenceChannel.presence.enter({ userId });
+            } catch (err) {
+              console.error('Failed to enter presence:', err);
+            }
+          }
         });
 
         ablyClient.connection.on('disconnected', () => {
@@ -70,11 +86,16 @@ export function AblyProvider({ children }: { children: React.ReactNode }) {
     initAbly();
 
     return () => {
+      if (ablyClient && userId) {
+        // Leave global presence when unmounting
+        const presenceChannel = ablyClient.channels.get('global:presence');
+        presenceChannel.presence.leave();
+      }
       if (ablyClient) {
         ablyClient.close();
       }
     };
-  }, []);
+  }, [userId]);
 
   return (
     <AblyContext.Provider value={{ client, isConnected }}>
