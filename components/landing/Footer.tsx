@@ -7,21 +7,21 @@ export default function Footer() {
 
   const footerLinks = {
     product: [
-      { label: 'Features', href: '#features' },
-      { label: 'How It Works', href: '#how-it-works' },
-      { label: 'Pricing', href: '#pricing' },
-      { label: 'Updates', href: '#' },
+      { label: 'Features', href: '/' },
+      { label: 'How It Works', href: '/' },
+      { label: 'Pricing', href: '/' },
+      { label: 'Updates', href: '/' },
     ],
     company: [
-      { label: 'About', href: '#' },
-      { label: 'Blog', href: '#' },
+      { label: 'About', href: '/about' },
+      { label: 'Blog', href: '/blog' },
       { label: 'Careers', href: '#' },
       { label: 'Contact', href: '#' },
     ],
     legal: [
-      { label: 'Privacy Policy', href: '#' },
+      { label: 'Privacy Policy', href: '/privacy' },
       { label: 'Terms of Service', href: '#' },
-      { label: 'Security', href: '#' },
+      { label: 'Security', href: '/privacy' },
       { label: 'Cookies', href: '#' },
     ],
   };

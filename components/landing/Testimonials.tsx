@@ -1,5 +1,47 @@
 // components/landing/Testimonials.tsx
+'use client';
+
+import { useState, useEffect } from 'react';
 import { Star } from 'lucide-react';
+
+// Animated Counter Component
+const AnimatedCounter = ({ end, duration = 2000, suffix = '' }: { end: number; duration?: number; suffix?: string }) => {
+  const [count, setCount] = useState(0);
+  const [hasAnimated, setHasAnimated] = useState(false);
+
+  useEffect(() => {
+    if (hasAnimated) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          setHasAnimated(true);
+          let startTime: number;
+          const animate = (currentTime: number) => {
+            if (!startTime) startTime = currentTime;
+            const progress = (currentTime - startTime) / duration;
+
+            if (progress < 1) {
+              setCount(Math.floor(end * progress));
+              requestAnimationFrame(animate);
+            } else {
+              setCount(end);
+            }
+          };
+          requestAnimationFrame(animate);
+        }
+      },
+      { threshold: 0.5 }
+    );
+
+    const element = document.getElementById('stats-section');
+    if (element) observer.observe(element);
+
+    return () => observer.disconnect();
+  }, [end, duration, hasAnimated]);
+
+  return <span>{count}{suffix}</span>;
+};
 
 export default function Testimonials() {
   const testimonials = [
@@ -8,43 +50,47 @@ export default function Testimonials() {
       text: 'TaskMate transformed how I manage my daily work. The categories and priorities make everything so clear!',
       author: 'Sarah Chen',
       role: 'Product Manager',
-      avatar: '👩‍💼',
     },
     {
       rating: 5,
-      text: 'Finally, a task manager that doesn\'t overwhelm me. Simple, beautiful, and exactly what I needed.',
+      text: 'Finally, a task manager that does not overwhelm me. Simple, beautiful, and exactly what I needed.',
       author: 'Marcus Rodriguez',
       role: 'Freelance Designer',
-      avatar: '👨‍🎨',
     },
     {
       rating: 5,
-      text: 'The daily reminders keep me on track without being annoying. Best productivity app I\'ve used.',
+      text: 'The daily reminders and live support keep me on track. Best productivity app I have used.',
       author: 'Emily Thompson',
       role: 'Graduate Student',
-      avatar: '👩‍🎓',
     },
   ];
 
+  const stats = [
+    { value: 1000, suffix: '+', label: 'Active Users' },
+    { value: 5000, suffix: '+', label: 'Tasks Created' },
+    { value: 10000, suffix: '+', label: 'Hours Saved' },
+    { value: 99, suffix: '%', label: 'Satisfaction' },
+  ];
+
   return (
-    <section id="testimonials" className="py-20 md:py-32 bg-white">
-      <div className="container-responsive">
+    <section id="testimonials" className="py-16 md:py-24 bg-white">
+      <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8">
         {/* Section Header */}
-        <div className="text-center max-w-3xl mx-auto mb-16">
-          <h2 className="heading-2 text-gray-900 mb-4">
+        <div className="text-center max-w-3xl mx-auto mb-12 md:mb-16">
+          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
             Loved by Productive People
           </h2>
           <p className="text-lg text-gray-600">
-            Join thousands of happy users who've transformed their productivity.
+            Join thousands of happy users who have transformed their productivity.
           </p>
         </div>
 
         {/* Testimonials Grid */}
-        <div className="grid md:grid-cols-3 gap-8">
+        <div className="grid md:grid-cols-3 gap-6 md:gap-8 mb-16">
           {testimonials.map((testimonial, index) => (
             <div
               key={index}
-              className="p-8 bg-gray-50 rounded-2xl border border-gray-200 hover:border-yellow-400 hover:shadow-lg transition-all"
+              className="p-6 md:p-8 bg-gray-50 rounded-2xl border border-gray-200 hover:border-yellow-400 hover:shadow-lg transition-all"
             >
               {/* Stars */}
               <div className="flex gap-1 mb-4">
@@ -55,41 +101,28 @@ export default function Testimonials() {
 
               {/* Quote */}
               <p className="text-gray-700 leading-relaxed mb-6 italic">
-                "{testimonial.text}"
+                {testimonial.text}
               </p>
 
               {/* Author */}
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center text-2xl">
-                  {testimonial.avatar}
-                </div>
-                <div>
-                  <div className="font-bold text-gray-900">{testimonial.author}</div>
-                  <div className="text-sm text-gray-600">{testimonial.role}</div>
-                </div>
+              <div>
+                <div className="font-bold text-gray-900">{testimonial.author}</div>
+                <div className="text-sm text-gray-600">{testimonial.role}</div>
               </div>
             </div>
           ))}
         </div>
 
-        {/* Stats Row */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mt-16 pt-16 border-t border-gray-200">
-          <div className="text-center">
-            <div className="text-4xl font-bold text-yellow-500 mb-2">1,000+</div>
-            <div className="text-gray-600">Active Users</div>
-          </div>
-          <div className="text-center">
-            <div className="text-4xl font-bold text-yellow-500 mb-2">5,000+</div>
-            <div className="text-gray-600">Tasks Created</div>
-          </div>
-          <div className="text-center">
-            <div className="text-4xl font-bold text-yellow-500 mb-2">10,000+</div>
-            <div className="text-gray-600">Hours Saved</div>
-          </div>
-          <div className="text-center">
-            <div className="text-4xl font-bold text-yellow-500 mb-2">99%</div>
-            <div className="text-gray-600">Satisfaction</div>
-          </div>
+        {/* Animated Stats Row */}
+        <div id="stats-section" className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8 pt-12 md:pt-16 border-t border-gray-200">
+          {stats.map((stat, index) => (
+            <div key={index} className="text-center">
+              <div className="text-3xl md:text-4xl font-bold text-yellow-500 mb-2">
+                <AnimatedCounter end={stat.value} suffix={stat.suffix} />
+              </div>
+              <div className="text-gray-600">{stat.label}</div>
+            </div>
+          ))}
         </div>
       </div>
     </section>

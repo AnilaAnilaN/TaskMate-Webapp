@@ -9,6 +9,8 @@ import Testimonials from '@/components/landing/Testimonials';
 import Pricing from '@/components/landing/Pricing';
 import FAQ from '@/components/landing/FAQ';
 import FinalCTA from '@/components/landing/FinalCTA';
+import ChatSupport from '@/components/landing/ChatSupport';
+import SocialProof from '@/components/landing/SocialProof';
 import Footer from '@/components/landing/Footer';
 
 export default async function HomePage() {
@@ -28,8 +30,10 @@ export default async function HomePage() {
       <main>
         <Hero />
         <Features />
+        <ChatSupport />
         <HowItWorks />
         <Testimonials />
+        <SocialProof />
         <Pricing />
         <FAQ />
         <FinalCTA />

@@ -1,5 +1,15 @@
 // components/landing/Features.tsx
-import { CheckSquare, FolderOpen, AlertCircle, Calendar, FileText, Bell, BarChart3, Lock, Smartphone } from 'lucide-react';
+import { 
+  CheckSquare, 
+  FolderOpen, 
+  Target, 
+  Calendar, 
+  FileText, 
+  Bell, 
+  BarChart3, 
+  Lock, 
+  MessageCircle 
+} from 'lucide-react';
 
 export default function Features() {
   const features = [
@@ -11,12 +21,12 @@ export default function Features() {
     {
       icon: FolderOpen,
       title: 'Custom Categories',
-      description: 'Color-coded categories with emoji icons. Work, Personal, Health—organize your way with visual clarity.',
+      description: 'Color-coded categories with visual icons. Work, Personal, Health—organize your way with clarity.',
     },
     {
-      icon: AlertCircle,
+      icon: Target,
       title: 'Priority Management',
-      description: 'Urgent, High, Medium, Low priorities. Focus on what needs attention now with smart visual indicators.',
+      description: 'Urgent, High, Medium, Low priorities. Focus on what needs attention now with smart indicators.',
     },
     {
       icon: Calendar,
@@ -44,18 +54,18 @@ export default function Features() {
       description: 'Your data is encrypted and safe. Email verification and secure password management built-in.',
     },
     {
-      icon: Smartphone,
-      title: 'Fully Responsive',
-      description: 'Works beautifully on desktop, tablet, and mobile. Access your tasks anywhere, anytime.',
+      icon: MessageCircle,
+      title: 'Live Chat Support',
+      description: 'Get instant help with real-time 1:1 chat support. We are here whenever you need us.',
     },
   ];
 
   return (
-    <section id="features" className="py-20 md:py-32 bg-white">
-      <div className="container-responsive">
+    <section id="features" className="py-16 md:py-24 bg-white">
+      <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8">
         {/* Section Header */}
-        <div className="text-center max-w-3xl mx-auto mb-16">
-          <h2 className="heading-2 text-gray-900 mb-4">
+        <div className="text-center max-w-3xl mx-auto mb-12 md:mb-16">
+          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
             Everything You Need to Stay Productive
           </h2>
           <p className="text-lg text-gray-600">
@@ -64,7 +74,7 @@ export default function Features() {
         </div>
 
         {/* Features Grid */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
           {features.map((feature, index) => {
             const Icon = feature.icon;
             return (
