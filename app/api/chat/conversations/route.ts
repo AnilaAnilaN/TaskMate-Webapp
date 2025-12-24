@@ -5,7 +5,6 @@ import jwt from 'jsonwebtoken';
 import mongoose from 'mongoose';
 import { dbConnect } from '@/lib/db/mongoose';
 import ConversationModel from '@/models/Conversation.model';
-import UserModel from '@/models/User.model';
 
 export async function GET(request: NextRequest) {
   try {
@@ -38,16 +37,22 @@ export async function GET(request: NextRequest) {
         (p: any) => p._id.toString() !== userId.toString()
       );
 
-      // Handle unreadCount as Map or Object
+      // Handle unreadCount - it could be a Map, Object, or missing
       let unreadCount = 0;
-      if (conv.unreadCount instanceof Map) {
-        unreadCount = conv.unreadCount.get(userId.toString()) || 0;
-      } else if (conv.unreadCount) {
-        unreadCount = (conv.unreadCount as any)[userId.toString()] || 0;
+      if (conv.unreadCount) {
+        if (conv.unreadCount instanceof Map) {
+          unreadCount = conv.unreadCount.get(userId.toString()) || 0;
+        } else if (typeof conv.unreadCount === 'object') {
+          unreadCount = conv.unreadCount[userId.toString()] || 0;
+        }
       }
 
       return {
-        ...conv,
+        _id: conv._id,
+        participants: conv.participants,
+        createdAt: conv.createdAt,
+        updatedAt: conv.updatedAt,
+        lastMessage: conv.lastMessage,
         id: conv._id.toString(),
         otherUser: {
           id: otherParticipant._id.toString(),
@@ -107,12 +112,14 @@ export async function POST(request: NextRequest) {
 
     // Create new conversation if it doesn't exist
     if (!conversation) {
+      // Create unreadCount as a proper object
+      const unreadCountObj: Record<string, number> = {};
+      unreadCountObj[userId.toString()] = 0;
+      unreadCountObj[recipientObjectId.toString()] = 0;
+
       conversation = await ConversationModel.create({
         participants: [userId, recipientObjectId],
-        unreadCount: {
-          [userId.toString()]: 0,
-          [recipientObjectId.toString()]: 0,
-        },
+        unreadCount: unreadCountObj,
       });
 
       conversation = await conversation.populate(
@@ -121,16 +128,36 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const conversationObj = conversation.toJSON();
+    const conversationObj = conversation.toObject();
     const otherParticipant = conversationObj.participants.find(
-      (p: any) => p.id !== userId.toString()
+      (p: any) => p._id.toString() !== userId.toString()
     );
+
+    // Extract unread count safely
+    let userUnreadCount = 0;
+    if (conversationObj.unreadCount) {
+      if (conversationObj.unreadCount instanceof Map) {
+        userUnreadCount = conversationObj.unreadCount.get(userId.toString()) || 0;
+      } else if (typeof conversationObj.unreadCount === 'object') {
+        userUnreadCount = (conversationObj.unreadCount as any)[userId.toString()] || 0;
+      }
+    }
 
     return NextResponse.json({
       conversation: {
-        ...conversationObj,
-        otherUser: otherParticipant,
-        unreadCount: (conversationObj.unreadCount as any)?.[userId.toString()] || 0,
+        _id: conversationObj._id,
+        participants: conversationObj.participants,
+        lastMessage: conversationObj.lastMessage,
+        createdAt: conversationObj.createdAt,
+        updatedAt: conversationObj.updatedAt,
+        id: conversationObj._id.toString(),
+        otherUser: {
+          id: otherParticipant._id.toString(),
+          name: otherParticipant.name,
+          email: otherParticipant.email,
+          profileImage: otherParticipant.profileImage,
+        },
+        unreadCount: userUnreadCount,
       },
     });
   } catch (error) {
