@@ -6,6 +6,28 @@ import mongoose from 'mongoose';
 import { dbConnect } from '@/lib/db/mongoose';
 import ConversationModel from '@/models/Conversation.model';
 
+// Type for populated user in participant array
+interface PopulatedUser {
+  _id: mongoose.Types.ObjectId;
+  name: string;
+  email: string;
+  profileImage?: string | null;
+}
+
+// Type for conversation with populated participants
+interface PopulatedConversation {
+  _id: mongoose.Types.ObjectId;
+  participants: PopulatedUser[];
+  lastMessage?: {
+    text: string;
+    senderId: mongoose.Types.ObjectId;
+    timestamp: Date;
+  };
+  unreadCount: any;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 export async function GET(request: NextRequest) {
   try {
     await dbConnect();
@@ -29,40 +51,48 @@ export async function GET(request: NextRequest) {
     })
       .populate('participants', 'name email profileImage')
       .sort({ 'lastMessage.timestamp': -1 })
-      .lean();
+      .lean<PopulatedConversation[]>();
 
     // Calculate unread count for current user
-    const conversationsWithUnread = conversations.map((conv: any) => {
-      const otherParticipant = conv.participants.find(
-        (p: any) => p._id.toString() !== userId.toString()
-      );
+    const conversationsWithUnread = conversations
+      .map((conv) => {
+        const otherParticipant = conv.participants.find(
+          (p) => p._id.toString() !== userId.toString()
+        );
 
-      // Handle unreadCount - it could be a Map, Object, or missing
-      let unreadCount = 0;
-      if (conv.unreadCount) {
-        if (conv.unreadCount instanceof Map) {
-          unreadCount = conv.unreadCount.get(userId.toString()) || 0;
-        } else if (typeof conv.unreadCount === 'object') {
-          unreadCount = conv.unreadCount[userId.toString()] || 0;
+        // Skip if otherParticipant not found (shouldn't happen but safety check)
+        if (!otherParticipant) {
+          console.error('Other participant not found in conversation:', conv._id);
+          return null;
         }
-      }
 
-      return {
-        _id: conv._id,
-        participants: conv.participants,
-        createdAt: conv.createdAt,
-        updatedAt: conv.updatedAt,
-        lastMessage: conv.lastMessage,
-        id: conv._id.toString(),
-        otherUser: {
-          id: otherParticipant._id.toString(),
-          name: otherParticipant.name,
-          email: otherParticipant.email,
-          profileImage: otherParticipant.profileImage,
-        },
-        unreadCount,
-      };
-    });
+        // Handle unreadCount - it could be a Map, Object, or missing
+        let unreadCount = 0;
+        if (conv.unreadCount) {
+          if (conv.unreadCount instanceof Map) {
+            unreadCount = conv.unreadCount.get(userId.toString()) || 0;
+          } else if (typeof conv.unreadCount === 'object') {
+            unreadCount = conv.unreadCount[userId.toString()] || 0;
+          }
+        }
+
+        return {
+          _id: conv._id,
+          participants: conv.participants,
+          createdAt: conv.createdAt,
+          updatedAt: conv.updatedAt,
+          lastMessage: conv.lastMessage,
+          id: conv._id.toString(),
+          otherUser: {
+            id: otherParticipant._id.toString(),
+            name: otherParticipant.name,
+            email: otherParticipant.email,
+            profileImage: otherParticipant.profileImage || null,
+          },
+          unreadCount,
+        };
+      })
+      .filter((conv): conv is NonNullable<typeof conv> => conv !== null);
 
     return NextResponse.json({
       conversations: conversationsWithUnread,
@@ -108,7 +138,7 @@ export async function POST(request: NextRequest) {
     // Check if conversation already exists
     let conversation = await ConversationModel.findOne({
       participants: { $all: [userId, recipientObjectId] },
-    }).populate('participants', 'name email profileImage');
+    }).populate('participants', 'name email profileImage').lean<PopulatedConversation>();
 
     // Create new conversation if it doesn't exist
     if (!conversation) {
@@ -117,45 +147,58 @@ export async function POST(request: NextRequest) {
       unreadCountObj[userId.toString()] = 0;
       unreadCountObj[recipientObjectId.toString()] = 0;
 
-      conversation = await ConversationModel.create({
+      const newConv = await ConversationModel.create({
         participants: [userId, recipientObjectId],
         unreadCount: unreadCountObj,
       });
 
-      conversation = await conversation.populate(
-        'participants',
-        'name email profileImage'
+      conversation = await ConversationModel.findById(newConv._id)
+        .populate('participants', 'name email profileImage')
+        .lean<PopulatedConversation>();
+
+      if (!conversation) {
+        return NextResponse.json(
+          { error: 'Failed to create conversation' },
+          { status: 500 }
+        );
+      }
+    }
+
+    const otherParticipant = conversation.participants.find(
+      (p) => p._id.toString() !== userId.toString()
+    );
+
+    // Safety check for otherParticipant
+    if (!otherParticipant) {
+      return NextResponse.json(
+        { error: 'Invalid conversation participants' },
+        { status: 500 }
       );
     }
 
-    const conversationObj = conversation.toObject();
-    const otherParticipant = conversationObj.participants.find(
-      (p: any) => p._id.toString() !== userId.toString()
-    );
-
     // Extract unread count safely
     let userUnreadCount = 0;
-    if (conversationObj.unreadCount) {
-      if (conversationObj.unreadCount instanceof Map) {
-        userUnreadCount = conversationObj.unreadCount.get(userId.toString()) || 0;
-      } else if (typeof conversationObj.unreadCount === 'object') {
-        userUnreadCount = (conversationObj.unreadCount as any)[userId.toString()] || 0;
+    if (conversation.unreadCount) {
+      if (conversation.unreadCount instanceof Map) {
+        userUnreadCount = conversation.unreadCount.get(userId.toString()) || 0;
+      } else if (typeof conversation.unreadCount === 'object') {
+        userUnreadCount = conversation.unreadCount[userId.toString()] || 0;
       }
     }
 
     return NextResponse.json({
       conversation: {
-        _id: conversationObj._id,
-        participants: conversationObj.participants,
-        lastMessage: conversationObj.lastMessage,
-        createdAt: conversationObj.createdAt,
-        updatedAt: conversationObj.updatedAt,
-        id: conversationObj._id.toString(),
+        _id: conversation._id,
+        participants: conversation.participants,
+        lastMessage: conversation.lastMessage,
+        createdAt: conversation.createdAt,
+        updatedAt: conversation.updatedAt,
+        id: conversation._id.toString(),
         otherUser: {
           id: otherParticipant._id.toString(),
           name: otherParticipant.name,
           email: otherParticipant.email,
-          profileImage: otherParticipant.profileImage,
+          profileImage: otherParticipant.profileImage || null,
         },
         unreadCount: userUnreadCount,
       },
