@@ -25,12 +25,16 @@ class NotificationService {
    * Create a new notification
    */
   async createNotification(data: CreateNotificationPayload) {
-    // Check if notification already exists for this task and type
+    // Check if notification already exists for this task and type TODAY
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+    
     const existing = await NotificationModel.findOne({
       userId: data.userId,
       taskId: data.taskId,
       type: data.type,
       isDismissed: false,
+      createdAt: { $gte: todayStart }, // Only check notifications created today
     });
 
     if (existing) {
@@ -134,22 +138,46 @@ class NotificationService {
   }
 
   /**
+   * Clean up old "due_today" notifications that are no longer relevant
+   */
+  async cleanupOldDueTodayNotifications(userId: string) {
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+
+    // Dismiss "due_today" notifications created before today
+    const result = await NotificationModel.updateMany(
+      {
+        userId,
+        type: 'due_today',
+        isDismissed: false,
+        createdAt: { $lt: todayStart },
+      },
+      { isDismissed: true }
+    );
+
+    return { modifiedCount: result.modifiedCount };
+  }
+
+  /**
    * Check and create notifications for due/overdue tasks
    */
   async checkAndCreateTaskNotifications(userId: string) {
+    // Clean up old due_today notifications first
+    await this.cleanupOldDueTodayNotifications(userId);
+
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const tomorrow = new Date(today);
     tomorrow.setDate(tomorrow.getDate() + 1);
 
-    // Find tasks due today
+    // Find tasks due today (not completed)
     const dueTodayTasks = await TaskModel.find({
       userId,
       status: { $ne: 'completed' },
       dueDate: { $gte: today, $lt: tomorrow },
     }).populate('categoryId', 'name color icon');
 
-    // Find overdue tasks
+    // Find overdue tasks (not completed, due before today)
     const overdueTasks = await TaskModel.find({
       userId,
       status: { $ne: 'completed' },
@@ -181,18 +209,29 @@ class NotificationService {
       notifications.push(notification);
     }
 
-    // Create notification for overdue tasks (grouped)
+    // Create/update notification for overdue tasks (grouped)
     if (overdueTasks.length > 0) {
+      // Dismiss old overdue notifications
+      await NotificationModel.updateMany(
+        {
+          userId,
+          type: 'overdue',
+          isDismissed: false,
+        },
+        { isDismissed: true }
+      );
+
       const firstTask: any = overdueTasks[0].toJSON();
       
-      const notification = await this.createNotification({
+      // Create a new overdue notification with current count
+      const notification = await NotificationModel.create({
         userId,
         taskId: firstTask.id,
         type: 'overdue',
         title: '⚠️ Overdue tasks',
         message: `You have ${overdueTasks.length} overdue task${overdueTasks.length > 1 ? 's' : ''}`,
         metadata: {
-          taskTitle: `${overdueTasks.length} task${overdueTasks.length > 1 ? 's' : ''}`,
+          taskTitle: `${overdueTasks.length} overdue task${overdueTasks.length > 1 ? 's' : ''}`,
           dueDate: firstTask.dueDate,
           priority: 'urgent',
           categoryName: 'Multiple',
@@ -201,7 +240,17 @@ class NotificationService {
         },
       });
 
-      notifications.push(notification);
+      notifications.push(notification.toJSON());
+    } else {
+      // If no overdue tasks, dismiss any existing overdue notifications
+      await NotificationModel.updateMany(
+        {
+          userId,
+          type: 'overdue',
+          isDismissed: false,
+        },
+        { isDismissed: true }
+      );
     }
 
     return notifications;
