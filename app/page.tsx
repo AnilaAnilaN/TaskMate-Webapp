@@ -12,6 +12,7 @@ import FinalCTA from '@/components/landing/FinalCTA';
 import ChatSupport from '@/components/landing/ChatSupport';
 import SocialProof from '@/components/landing/SocialProof';
 import Footer from '@/components/landing/Footer';
+import ChatWidgetProvider from '@/components/support/ChatWidgetProvider';
 
 export default async function HomePage() {
   // Check if user is already logged in
@@ -23,22 +24,25 @@ export default async function HomePage() {
     redirect('/dashboard');
   }
 
-  // If NOT logged in, show the landing page (removed the redirect to /auth)
+  // If NOT logged in, show the landing page
   return (
     <div className="min-h-screen bg-white">
       <Header />
       <main>
         <Hero />
-        <Features />
-        <ChatSupport />
-        <HowItWorks />
-        <Testimonials />
         <SocialProof />
+        <Features />
+        <HowItWorks />
+        <ChatSupport />
+        <Testimonials />
         <Pricing />
         <FAQ />
         <FinalCTA />
       </main>
       <Footer />
+      
+      {/* AI Support Chat Widget */}
+      <ChatWidgetProvider />
     </div>
   );
 }
