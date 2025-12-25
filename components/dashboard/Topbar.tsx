@@ -1,11 +1,11 @@
-// components/dashboard/Topbar.tsx
+// components/dashboard/Topbar.tsx (UPDATED)
 'use client';
 
 import { Search } from 'lucide-react';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import NotificationBell from './NotificationBell';
-import ChatNotificationBadge from '@/components/chat/ChatNotificationBadge';
+import AssistantNotificationBadge from '@/components/assistant/AssistantNotificationBadge';
 
 export default function Topbar() {
   const [userName, setUserName] = useState('User');
@@ -43,8 +43,8 @@ export default function Topbar() {
 
       {/* Right Section - User Actions */}
       <div className="flex items-center gap-2 md:gap-3">
-        {/* Chat Notification Badge - NEW */}
-        <ChatNotificationBadge />
+        {/* AI Assistant Notification Badge - NEW */}
+        <AssistantNotificationBadge />
 
         {/* Task Notification Bell */}
         <NotificationBell />

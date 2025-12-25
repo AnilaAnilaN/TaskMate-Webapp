@@ -1,7 +1,7 @@
-// components/dashboard/Sidebar.tsx
+// components/dashboard/Sidebar.tsx (UPDATED)
 'use client';
 
-import { Calendar, Bell, FolderOpen, Settings, LogOut, Menu, X, MessageCircle } from 'lucide-react';
+import { Calendar, Bell, FolderOpen, Settings, LogOut, Menu, X, MessageCircle, Sparkles } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
@@ -64,7 +64,8 @@ export default function Sidebar() {
     { href: '/dashboard', icon: Calendar, label: 'Dashboard' },
     { href: '/dashboard/categories', icon: FolderOpen, label: 'Categories' },
     { href: '/tasks', icon: null, label: 'My tasks' },
-    { href: '/chat', icon: MessageCircle, label: 'Messages' }, // 🆕 NEW - Chat
+    { href: '/chat', icon: MessageCircle, label: 'Messages' },        // Your Ably chat
+    { href: '/assistant', icon: Sparkles, label: 'AI Assistant' },    // 🆕 NEW - Gemini AI
     { href: '/notifications', icon: Bell, label: 'Notifications' },
   ];
 
@@ -91,6 +92,8 @@ export default function Sidebar() {
               ? isActive('/tasks') || pathname.startsWith('/tasks/')
               : item.href === '/chat'
               ? isActive('/chat') || pathname.startsWith('/chat/')
+              : item.href === '/assistant'
+              ? isActive('/assistant') || pathname.startsWith('/assistant/')
               : isActive(item.href);
 
             return (
