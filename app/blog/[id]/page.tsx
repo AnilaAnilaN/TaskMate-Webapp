@@ -199,7 +199,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ id: s
     notFound();
   }
 
-  const currentUrl = `https://taskmate.com/blog/${id}`;
+  const currentUrl = `https://task-mate-next-js-bmsf.vercel.app/blog/${id}`;
 
   return (
     <>
