@@ -15,14 +15,14 @@ export default function Footer() {
     company: [
       { label: 'About', href: '/about' },
       { label: 'Blog', href: '/blog' },
-      { label: 'Careers', href: '#' },
-      { label: 'Contact', href: '#' },
+      { label: 'Careers', href: '/careers' },
+      { label: 'Contact', href: '/contact' },
     ],
     legal: [
       { label: 'Privacy Policy', href: '/privacy' },
       { label: 'Terms of Service', href: '#' },
       { label: 'Security', href: '/privacy' },
-      { label: 'Cookies', href: '#' },
+      { label: 'Cookies', href: '/cookies' },
     ],
   };
 
