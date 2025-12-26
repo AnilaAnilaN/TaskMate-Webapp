@@ -1,7 +1,7 @@
-// components/dashboard/Topbar.tsx (UPDATED)
+// components/dashboard/Topbar.tsx - With Both Chat Icons
 'use client';
 
-import { Search } from 'lucide-react';
+import { Search, MessageCircle } from 'lucide-react';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import NotificationBell from './NotificationBell';
@@ -43,7 +43,16 @@ export default function Topbar() {
 
       {/* Right Section - User Actions */}
       <div className="flex items-center gap-2 md:gap-3">
-        {/* AI Assistant Notification Badge - NEW */}
+        {/* Ably Chat Icon */}
+        <Link
+          href="/chat"
+          className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+          title="Messages"
+        >
+          <MessageCircle className="w-5 h-5 text-gray-600" />
+        </Link>
+
+        {/* AI Assistant Badge */}
         <AssistantNotificationBadge />
 
         {/* Task Notification Bell */}
