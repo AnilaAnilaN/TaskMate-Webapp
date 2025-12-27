@@ -1,5 +1,4 @@
-// components/editor/RichTextEditor.tsx
-// ==========================================
+// components/editor/RichTextEditor.tsx - IMPROVED VERSION
 'use client';
 
 import { useEditor, EditorContent } from '@tiptap/react';
@@ -24,7 +23,7 @@ import {
   AlignRight,
   Link as LinkIcon,
 } from 'lucide-react';
-import { useCallback } from 'react';
+import { useCallback, useEffect } from 'react';
 
 interface RichTextEditorProps {
   content: string;
@@ -62,6 +61,13 @@ export default function RichTextEditor({ content, onChange, placeholder = 'Start
       onChange(editor.getHTML());
     },
   });
+
+  // Update editor content when content prop changes (e.g., from voice transcription)
+  useEffect(() => {
+    if (editor && content !== editor.getHTML()) {
+      editor.commands.setContent(content);
+    }
+  }, [content, editor]);
 
   const setLink = useCallback(() => {
     if (!editor) return;

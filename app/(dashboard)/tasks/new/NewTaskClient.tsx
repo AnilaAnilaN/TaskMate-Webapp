@@ -1,3 +1,4 @@
+// app/tasks/new/NewTaskClient.tsx - UPDATED with Voice Recorder
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -5,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { ArrowLeft, Calendar as CalendarIcon, Clock } from 'lucide-react';
 import { getCategoryIcon } from '@/lib/config/categoryIcons';
 import RichTextEditor from '@/components/editor/RichTextEditor';
+import VoiceRecorder from '@/components/tasks/VoiceRecorder';
 
 interface Category {
   id: string;
@@ -21,7 +23,7 @@ export default function NewTaskClient() {
   const [message, setMessage] = useState('');
 
   const [title, setTitle] = useState('');
-  const [description, setDescription] = useState(''); // Now stores HTML
+  const [description, setDescription] = useState(''); // HTML content
   const [categoryId, setCategoryId] = useState('');
   const [priority, setPriority] = useState<'low' | 'medium' | 'high' | 'urgent'>('medium');
   const [dueDate, setDueDate] = useState('');
@@ -48,6 +50,21 @@ export default function NewTaskClient() {
     }
   };
 
+  const handleVoiceTranscription = (transcribedText: string) => {
+    // Get current content
+    const currentContent = description || '';
+    
+    // If empty, just add the transcription
+    if (!currentContent || currentContent === '<p></p>' || currentContent.trim() === '') {
+      setDescription(`<p>${transcribedText}</p>`);
+    } else {
+      // Append as new paragraph
+      setDescription(`${currentContent}<p>${transcribedText}</p>`);
+    }
+    
+    console.log('✅ Transcription added to editor');
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -67,7 +84,7 @@ export default function NewTaskClient() {
     try {
       const taskData = {
         title: title.trim(),
-        description: description, // HTML content
+        description: description,
         categoryId,
         priority,
         ...(dueDate && { dueDate: new Date(dueDate) }),
@@ -151,9 +168,23 @@ export default function NewTaskClient() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Description
-          </label>
+          <div className="flex items-center justify-between mb-2">
+            <label className="block text-sm font-medium text-gray-700">
+              Description
+            </label>
+            <span className="text-xs text-gray-500">
+              Type or use voice recording
+            </span>
+          </div>
+          
+          {/* Voice Recorder Component */}
+          <div className="mb-3">
+            <VoiceRecorder 
+              onTranscriptionComplete={handleVoiceTranscription}
+            />
+          </div>
+
+          {/* Rich Text Editor */}
           <RichTextEditor
             content={description}
             onChange={setDescription}
