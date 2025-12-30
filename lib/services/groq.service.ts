@@ -20,7 +20,8 @@ class GroqService {
    */
   async generateResponse(
     userMessage: string,
-    conversationHistory: AssistantMessage[] = []
+    conversationHistory: AssistantMessage[] = [],
+    customSystemPrompt?: string
   ): Promise<{ text: string; metadata: any }> {
     try {
       const startTime = Date.now();
@@ -29,7 +30,7 @@ class GroqService {
       const messages = [
         {
           role: 'system' as const,
-          content: this.getSystemPrompt(),
+          content: customSystemPrompt || this.getSystemPrompt(),
         },
         ...conversationHistory.map(msg => ({
           role: msg.role === 'assistant' ? ('assistant' as const) : ('user' as const),
@@ -64,7 +65,19 @@ class GroqService {
         },
       };
     } catch (error: any) {
-      console.error('Groq API Error:', error);
+      console.error('❌ Groq API Error:', error);
+      console.error('❌ Error details:', {
+        message: error.message,
+        status: error.status,
+        code: error.code,
+        type: error.type,
+      });
+      
+      // Re-throw with more specific error message
+      if (error.status === 401 || error.code === 'invalid_api_key') {
+        throw new Error('Invalid Groq API key. Please check your GROQ_API_KEY in .env.local');
+      }
+      
       throw new Error(
         error.message || 'Failed to generate response from AI'
       );

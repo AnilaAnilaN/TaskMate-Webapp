@@ -5,12 +5,14 @@ import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { 
   ArrowLeft, Edit2, Trash2, Clock, Calendar, Flag, 
-  Play, Pause, Save, X, CheckCircle, Circle 
+  Play, Pause, Save, X, CheckCircle, Circle, 
+  MessageCircle, Sparkles
 } from 'lucide-react';
 import { getCategoryIcon } from '@/lib/config/categoryIcons';
 import { useTimer } from '@/lib/contexts/TimerContext';
 import RichTextEditor from '@/components/editor/RichTextEditor';
 import RichTextViewer from '@/components/editor/RichTextViewer';
+import TaskChat from '@/components/tasks/TaskChat';
 
 interface Category {
   id: string;
@@ -49,6 +51,10 @@ export default function TaskDetailClient() {
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  
+  // AI Chat state
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  const [hasUnreadMessages, setHasUnreadMessages] = useState(false);
 
   // Edit form state
   const [editTitle, setEditTitle] = useState('');
@@ -151,7 +157,7 @@ export default function TaskDetailClient() {
   };
 
   const handleDelete = async () => {
-    if (!confirm('Are you sure you want to delete this task?')) return;
+    if (!confirm('Are you sure you want to delete this task? This will also delete all chat history.')) return;
 
     if (isTracking) {
       stopTimer();
@@ -191,6 +197,10 @@ export default function TaskDetailClient() {
 
   const handleStartTimer = () => {
     startTimer(taskId);
+    // Auto-change status to in-progress if it's todo
+    if (task?.status === 'todo') {
+      handleStatusChange('in-progress');
+    }
   };
 
   const handleStopTimer = async () => {
@@ -215,6 +225,11 @@ export default function TaskDetailClient() {
         console.error('Error saving time:', error);
       }
     }
+  };
+
+  const openChat = () => {
+    setIsChatOpen(true);
+    setHasUnreadMessages(false);
   };
 
   const formatTime = (seconds: number) => {
@@ -267,230 +282,285 @@ export default function TaskDetailClient() {
   const IconComponent = getCategoryIcon(task.categoryId.icon);
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <button onClick={() => router.back()} className="p-2 hover:bg-gray-100 rounded-xl transition-colors">
-            <ArrowLeft className="w-6 h-6 text-gray-600" />
-          </button>
-          <h1 className="text-2xl font-bold text-gray-900">Task Details</h1>
-          {isTracking && (
-            <div className="flex items-center gap-2 px-3 py-1.5 bg-red-50 border border-red-200 rounded-lg">
-              <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
-              <span className="text-sm font-medium text-red-700">Timer Active</span>
-            </div>
-          )}
-        </div>
-
-        <div className="flex items-center gap-2">
-          {!isEditing && (
-            <>
-              <button onClick={() => setIsEditing(true)} className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-medium flex items-center gap-2 transition-colors">
-                <Edit2 className="w-4 h-4" /> Edit
-              </button>
-              <button onClick={handleDelete} disabled={deleting} className="px-4 py-2 bg-red-100 hover:bg-red-200 text-red-700 rounded-xl font-medium flex items-center gap-2 transition-colors disabled:opacity-50">
-                <Trash2 className="w-4 h-4" /> {deleting ? 'Deleting...' : 'Delete'}
-              </button>
-            </>
-          )}
-        </div>
-      </div>
-
-      {/* Main Content */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left Column */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Task Info Card */}
-          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-            {isEditing ? (
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Title</label>
-                  <input type="text" value={editTitle} onChange={(e) => setEditTitle(e.target.value)} className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-yellow-400 outline-none" />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
-                  <RichTextEditor
-                    content={editDescription}
-                    onChange={setEditDescription}
-                    placeholder="Add task description with rich formatting..."
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
-                    <select value={editStatus} onChange={(e) => setEditStatus(e.target.value as Task['status'])} className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-yellow-400 outline-none">
-                      <option value="todo">To Do</option>
-                      <option value="in-progress">In Progress</option>
-                      <option value="completed">Completed</option>
-                      <option value="cancelled">Cancelled</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Priority</label>
-                    <select value={editPriority} onChange={(e) => setEditPriority(e.target.value as Task['priority'])} className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-yellow-400 outline-none">
-                      <option value="low">Low</option>
-                      <option value="medium">Medium</option>
-                      <option value="high">High</option>
-                      <option value="urgent">Urgent</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Category</label>
-                  <div className="grid grid-cols-3 gap-2">
-                    {categories.map((cat) => {
-                      const CatIcon = getCategoryIcon(cat.icon);
-                      return (
-                        <button key={cat.id} type="button" onClick={() => setEditCategoryId(cat.id)} className={`p-3 rounded-xl border-2 transition-all ${editCategoryId === cat.id ? 'border-yellow-400 bg-yellow-50' : 'border-gray-200 hover:border-gray-300'}`}>
-                          <div className="w-8 h-8 rounded-lg mx-auto mb-1 flex items-center justify-center" style={{ backgroundColor: `${cat.color}20` }}>
-                            <CatIcon className="w-4 h-4" style={{ color: cat.color }} />
-                          </div>
-                          <div className="text-xs font-medium text-gray-900 truncate">{cat.name}</div>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Due Date</label>
-                    <input type="date" value={editDueDate} onChange={(e) => setEditDueDate(e.target.value)} className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-yellow-400 outline-none" />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Est. Time (min)</label>
-                    <input type="number" value={editEstimatedTime} onChange={(e) => setEditEstimatedTime(e.target.value)} min="0" className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-yellow-400 outline-none" />
-                  </div>
-                </div>
-
-                <div className="flex gap-3 pt-4">
-                  <button onClick={handleSave} className="flex-1 px-6 py-3 bg-yellow-400 hover:bg-yellow-500 text-gray-900 rounded-xl font-semibold flex items-center justify-center gap-2 transition-colors">
-                    <Save className="w-4 h-4" /> Save Changes
-                  </button>
-                  <button onClick={() => setIsEditing(false)} className="px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-medium transition-colors">
-                    Cancel
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                <div className="flex items-start gap-4">
-                  {getStatusIcon(task.status)}
-                  <div className="flex-1">
-                    <h2 className="text-2xl font-bold text-gray-900 mb-4">{task.title}</h2>
-                    <RichTextViewer content={task.description} />
-                  </div>
-                </div>
-
-                <div className="flex flex-wrap gap-3 pt-4 border-t border-gray-100">
-                  <div className="flex items-center gap-2 px-3 py-2 rounded-lg" style={{ backgroundColor: `${task.categoryId.color}20` }}>
-                    <IconComponent className="w-4 h-4" style={{ color: task.categoryId.color }} />
-                    <span className="font-medium text-gray-700">{task.categoryId.name}</span>
-                  </div>
-
-                  <span className={`px-3 py-2 rounded-lg text-sm font-medium ${getPriorityColor(task.priority)}`}>
-                    <Flag className="w-4 h-4 inline mr-1" />
-                    {task.priority}
-                  </span>
-
-                  <button onClick={() => handleStatusChange(task.status === 'completed' ? 'todo' : 'completed')} className="px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium text-gray-700 transition-colors">
-                    {task.status === 'completed' ? 'Mark Incomplete' : 'Mark Complete'}
-                  </button>
-                </div>
+    <>
+      <div className="max-w-4xl mx-auto space-y-6 pb-20 md:pb-6">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <button onClick={() => router.back()} className="p-2 hover:bg-gray-100 rounded-xl transition-colors">
+              <ArrowLeft className="w-6 h-6 text-gray-600" />
+            </button>
+            <h1 className="text-2xl font-bold text-gray-900">Task Details</h1>
+            {isTracking && (
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-red-50 border border-red-200 rounded-lg">
+                <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+                <span className="text-sm font-medium text-red-700">Timer Active</span>
               </div>
             )}
           </div>
 
-          {/* Time Tracking Card */}
-          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Time Tracking</h3>
-            
-            <div className="space-y-4">
-              <div className="text-center py-8 bg-gray-50 rounded-xl">
-                <div className="text-4xl font-mono font-bold text-gray-900 mb-4">
-                  {formatTime(displayTime)}
-                </div>
-                <button onClick={isTracking ? handleStopTimer : handleStartTimer} className={`px-6 py-3 rounded-xl font-semibold flex items-center gap-2 mx-auto transition-colors ${isTracking ? 'bg-red-500 hover:bg-red-600 text-white' : 'bg-yellow-400 hover:bg-yellow-500 text-gray-900'}`}>
-                  {isTracking ? <><Pause className="w-5 h-5" /> Stop Timer</> : <><Play className="w-5 h-5" /> Start Timer</>}
+          <div className="flex items-center gap-2">
+            {!isEditing && (
+              <>
+                <button onClick={() => setIsEditing(true)} className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-medium flex items-center gap-2 transition-colors">
+                  <Edit2 className="w-4 h-4" /> Edit
                 </button>
-                {isTracking && <p className="text-sm text-gray-500 mt-3">Timer continues running even if you navigate away</p>}
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="p-4 bg-blue-50 rounded-xl">
-                  <p className="text-sm text-blue-600 mb-1">Estimated</p>
-                  <p className="text-2xl font-bold text-blue-900">
-                    {task.estimatedTime ? formatMinutes(task.estimatedTime) : '—'}
-                  </p>
-                </div>
-                <div className="p-4 bg-green-50 rounded-xl">
-                  <p className="text-sm text-green-600 mb-1">Actual Time</p>
-                  <p className="text-2xl font-bold text-green-900">
-                    {formatMinutes(task.actualTime)}
-                  </p>
-                </div>
-              </div>
-            </div>
+                <button onClick={handleDelete} disabled={deleting} className="px-4 py-2 bg-red-100 hover:bg-red-200 text-red-700 rounded-xl font-medium flex items-center gap-2 transition-colors disabled:opacity-50">
+                  <Trash2 className="w-4 h-4" /> {deleting ? 'Deleting...' : 'Delete'}
+                </button>
+              </>
+            )}
           </div>
         </div>
 
-        {/* Right Column */}
-        <div className="space-y-6">
-          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Details</h3>
-            
-            <div className="space-y-4">
-              <div>
-                <p className="text-sm text-gray-500 mb-1">Status</p>
-                <p className="text-sm font-medium text-gray-900 capitalize">{task.status.replace('-', ' ')}</p>
-              </div>
+        {/* Main Content */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Left Column */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Task Info Card */}
+            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+              {isEditing ? (
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Title</label>
+                    <input type="text" value={editTitle} onChange={(e) => setEditTitle(e.target.value)} className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-yellow-400 outline-none" />
+                  </div>
 
-              {task.dueDate && (
-                <div>
-                  <p className="text-sm text-gray-500 mb-1">Due Date</p>
-                  <div className="flex items-center gap-2 text-sm font-medium text-gray-900">
-                    <Calendar className="w-4 h-4" />
-                    {new Date(task.dueDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                    <RichTextEditor
+                      content={editDescription}
+                      onChange={setEditDescription}
+                      placeholder="Add task description with rich formatting..."
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                      <select value={editStatus} onChange={(e) => setEditStatus(e.target.value as Task['status'])} className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-yellow-400 outline-none">
+                        <option value="todo">To Do</option>
+                        <option value="in-progress">In Progress</option>
+                        <option value="completed">Completed</option>
+                        <option value="cancelled">Cancelled</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Priority</label>
+                      <select value={editPriority} onChange={(e) => setEditPriority(e.target.value as Task['priority'])} className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-yellow-400 outline-none">
+                        <option value="low">Low</option>
+                        <option value="medium">Medium</option>
+                        <option value="high">High</option>
+                        <option value="urgent">Urgent</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Category</label>
+                    <div className="grid grid-cols-3 gap-2">
+                      {categories.map((cat) => {
+                        const CatIcon = getCategoryIcon(cat.icon);
+                        return (
+                          <button key={cat.id} type="button" onClick={() => setEditCategoryId(cat.id)} className={`p-3 rounded-xl border-2 transition-all ${editCategoryId === cat.id ? 'border-yellow-400 bg-yellow-50' : 'border-gray-200 hover:border-gray-300'}`}>
+                            <div className="w-8 h-8 rounded-lg mx-auto mb-1 flex items-center justify-center" style={{ backgroundColor: `${cat.color}20` }}>
+                              <CatIcon className="w-4 h-4" style={{ color: cat.color }} />
+                            </div>
+                            <div className="text-xs font-medium text-gray-900 truncate">{cat.name}</div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Due Date</label>
+                      <input type="date" value={editDueDate} onChange={(e) => setEditDueDate(e.target.value)} className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-yellow-400 outline-none" />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Est. Time (min)</label>
+                      <input type="number" value={editEstimatedTime} onChange={(e) => setEditEstimatedTime(e.target.value)} min="0" className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-yellow-400 outline-none" />
+                    </div>
+                  </div>
+
+                  <div className="flex gap-3 pt-4">
+                    <button onClick={handleSave} className="flex-1 px-6 py-3 bg-yellow-400 hover:bg-yellow-500 text-gray-900 rounded-xl font-semibold flex items-center justify-center gap-2 transition-colors">
+                      <Save className="w-4 h-4" /> Save Changes
+                    </button>
+                    <button onClick={() => setIsEditing(false)} className="px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-medium transition-colors">
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div className="flex items-start gap-4">
+                    {getStatusIcon(task.status)}
+                    <div className="flex-1">
+                      <h2 className="text-2xl font-bold text-gray-900 mb-4">{task.title}</h2>
+                      <RichTextViewer content={task.description} />
+                    </div>
+                  </div>
+
+                  <div className="flex flex-wrap gap-3 pt-4 border-t border-gray-100">
+                    <div className="flex items-center gap-2 px-3 py-2 rounded-lg" style={{ backgroundColor: `${task.categoryId.color}20` }}>
+                      <IconComponent className="w-4 h-4" style={{ color: task.categoryId.color }} />
+                      <span className="font-medium text-gray-700">{task.categoryId.name}</span>
+                    </div>
+
+                    <span className={`px-3 py-2 rounded-lg text-sm font-medium ${getPriorityColor(task.priority)}`}>
+                      <Flag className="w-4 h-4 inline mr-1" />
+                      {task.priority}
+                    </span>
+
+                    <button onClick={() => handleStatusChange(task.status === 'completed' ? 'todo' : 'completed')} className="px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium text-gray-700 transition-colors">
+                      {task.status === 'completed' ? 'Mark Incomplete' : 'Mark Complete'}
+                    </button>
                   </div>
                 </div>
               )}
+            </div>
 
-              <div>
-                <p className="text-sm text-gray-500 mb-1">Created</p>
-                <p className="text-sm font-medium text-gray-900">
-                  {new Date(task.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                </p>
-              </div>
+            {/* Time Tracking Card */}
+            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Time Tracking</h3>
+              
+              <div className="space-y-4">
+                <div className="text-center py-8 bg-gray-50 rounded-xl">
+                  <div className="text-4xl font-mono font-bold text-gray-900 mb-4">
+                    {formatTime(displayTime)}
+                  </div>
+                  <button onClick={isTracking ? handleStopTimer : handleStartTimer} className={`px-6 py-3 rounded-xl font-semibold flex items-center gap-2 mx-auto transition-colors ${isTracking ? 'bg-red-500 hover:bg-red-600 text-white' : 'bg-yellow-400 hover:bg-yellow-500 text-gray-900'}`}>
+                    {isTracking ? <><Pause className="w-5 h-5" /> Stop Timer</> : <><Play className="w-5 h-5" /> Start Timer</>}
+                  </button>
+                  {isTracking && <p className="text-sm text-gray-500 mt-3">Timer continues running even if you navigate away</p>}
+                </div>
 
-              <div>
-                <p className="text-sm text-gray-500 mb-1">Last Updated</p>
-                <p className="text-sm font-medium text-gray-900">
-                  {new Date(task.updatedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                </p>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="p-4 bg-blue-50 rounded-xl">
+                    <p className="text-sm text-blue-600 mb-1">Estimated</p>
+                    <p className="text-2xl font-bold text-blue-900">
+                      {task.estimatedTime ? formatMinutes(task.estimatedTime) : '—'}
+                    </p>
+                  </div>
+                  <div className="p-4 bg-green-50 rounded-xl">
+                    <p className="text-sm text-green-600 mb-1">Actual Time</p>
+                    <p className="text-2xl font-bold text-green-900">
+                      {formatMinutes(task.actualTime)}
+                    </p>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
-            
-            <div className="space-y-2">
-              {['todo', 'in-progress', 'completed', 'cancelled'].map((status) => (
-                <button key={status} onClick={() => handleStatusChange(status as Task['status'])} disabled={task.status === status} className={`w-full text-left px-4 py-3 rounded-xl font-medium transition-colors ${task.status === status ? 'bg-yellow-50 text-yellow-700 cursor-not-allowed' : 'bg-gray-50 hover:bg-gray-100 text-gray-700'}`}>
-                  Change to {status.charAt(0).toUpperCase() + status.slice(1).replace('-', ' ')}
-                </button>
-              ))}
+          {/* Right Column */}
+          <div className="space-y-6">
+            {/* AI Assistant Card */}
+            <button
+              onClick={openChat}
+              className="w-full bg-linear-to-br from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 text-white rounded-2xl p-6 shadow-sm border border-blue-600 transition-all hover:shadow-md relative group"
+            >
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <Sparkles className="w-6 h-6" />
+                </div>
+                <div className="flex-1 text-left">
+                  <h3 className="text-lg font-bold">Task Assistant</h3>
+                  <p className="text-xs text-blue-100">AI-powered help</p>
+                </div>
+              </div>
+              
+              <p className="text-sm text-blue-50 text-left mb-3">
+                Get intelligent suggestions, breakdowns, and tips for completing this specific task.
+              </p>
+              
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-blue-100">Click to start chatting</span>
+                <MessageCircle className="w-4 h-4" />
+              </div>
+
+              {hasUnreadMessages && (
+                <div className="absolute top-4 right-4 w-3 h-3 bg-red-500 rounded-full border-2 border-white animate-pulse"></div>
+              )}
+            </button>
+
+            {/* Details Card */}
+            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Details</h3>
+              
+              <div className="space-y-4">
+                <div>
+                  <p className="text-sm text-gray-500 mb-1">Status</p>
+                  <p className="text-sm font-medium text-gray-900 capitalize">{task.status.replace('-', ' ')}</p>
+                </div>
+
+                {task.dueDate && (
+                  <div>
+                    <p className="text-sm text-gray-500 mb-1">Due Date</p>
+                    <div className="flex items-center gap-2 text-sm font-medium text-gray-900">
+                      <Calendar className="w-4 h-4" />
+                      {new Date(task.dueDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+                    </div>
+                  </div>
+                )}
+
+                <div>
+                  <p className="text-sm text-gray-500 mb-1">Created</p>
+                  <p className="text-sm font-medium text-gray-900">
+                    {new Date(task.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                  </p>
+                </div>
+
+                <div>
+                  <p className="text-sm text-gray-500 mb-1">Last Updated</p>
+                  <p className="text-sm font-medium text-gray-900">
+                    {new Date(task.updatedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Quick Actions Card */}
+            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
+              
+              <div className="space-y-2">
+                {['todo', 'in-progress', 'completed', 'cancelled'].map((status) => (
+                  <button key={status} onClick={() => handleStatusChange(status as Task['status'])} disabled={task.status === status} className={`w-full text-left px-4 py-3 rounded-xl font-medium transition-colors ${task.status === status ? 'bg-yellow-50 text-yellow-700 cursor-not-allowed' : 'bg-gray-50 hover:bg-gray-100 text-gray-700'}`}>
+                    Change to {status.charAt(0).toUpperCase() + status.slice(1).replace('-', ' ')}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
+
+      {/* Task Chat Modal */}
+      <TaskChat
+        taskId={taskId}
+        isOpen={isChatOpen}
+        onClose={() => setIsChatOpen(false)}
+      />
+
+      {/* Floating Chat Button (Mobile) */}
+      {!isChatOpen && (
+        <button
+          onClick={openChat}
+          className="fixed bottom-6 right-6 w-16 h-16 bg-linear-to-br from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 rounded-full shadow-lg flex items-center justify-center text-white lg:hidden transition-all hover:scale-110 z-40 group relative"
+        >
+          <Sparkles className="w-7 h-7 group-hover:rotate-12 transition-transform" />
+          {hasUnreadMessages && (
+            <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full border-2 border-white animate-pulse">
+              <span className="sr-only">New messages</span>
+            </div>
+          )}
+        </button>
+      )}
+    </>
   );
 }
