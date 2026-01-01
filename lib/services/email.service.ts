@@ -20,7 +20,7 @@ if (!isConfigured) {
 const from = `"TaskMate" <${process.env.SMTP_USER || 'noreply@taskmate.app'}>`;
 
 // Hardcoded production URL
-const BASE_URL = 'https://task-mate-next-js-bmsf.vercel.app';
+const BASE_URL = 'https://task-mate-webapp.vercel.app/';
 
 let transporter: nodemailer.Transporter | null = null;
 
