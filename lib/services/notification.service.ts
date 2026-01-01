@@ -2,6 +2,8 @@
 // ==========================================
 import NotificationModel, { NotificationType } from '@/models/Notification.model';
 import TaskModel from '@/models/Task.model';
+import CategoryModel from '@/models/Category.model';
+import UserModel from '@/models/User.model';
 import mongoose from 'mongoose';
 
 interface CreateNotificationPayload {
@@ -28,7 +30,7 @@ class NotificationService {
     // Check if notification already exists for this task and type TODAY
     const todayStart = new Date();
     todayStart.setHours(0, 0, 0, 0);
-    
+
     const existing = await NotificationModel.findOne({
       userId: data.userId,
       taskId: data.taskId,
@@ -189,7 +191,7 @@ class NotificationService {
     // Create notifications for tasks due today
     for (const task of dueTodayTasks) {
       const taskObj: any = task.toJSON();
-      
+
       const notification = await this.createNotification({
         userId,
         taskId: taskObj.id,
@@ -222,7 +224,7 @@ class NotificationService {
       );
 
       const firstTask: any = overdueTasks[0].toJSON();
-      
+
       // Create a new overdue notification with current count
       const notification = await NotificationModel.create({
         userId,
