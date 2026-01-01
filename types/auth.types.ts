@@ -3,6 +3,8 @@ export interface User {
   name: string;
   email: string;
   emailVerified: boolean;
+  profileImage?: string | null;
+  bio?: string;
   createdAt: Date;
   updatedAt: Date;
 }

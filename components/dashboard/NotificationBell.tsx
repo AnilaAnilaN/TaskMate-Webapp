@@ -60,7 +60,7 @@ export default function NotificationBell() {
   const fetchNotifications = async () => {
     try {
       const response = await fetch('/api/notifications?limit=10', { cache: 'no-store' });
-      
+
       // Handle non-OK responses
       if (!response.ok) {
         const text = await response.text();
@@ -91,7 +91,7 @@ export default function NotificationBell() {
       const response = await fetch('/api/notifications', {
         method: 'POST',
       });
-      
+
       if (response.ok) {
         fetchNotifications();
       }
@@ -102,9 +102,9 @@ export default function NotificationBell() {
 
   const handleMarkAsRead = async (notificationId: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    
+
     console.log('Marking as read, notification ID:', notificationId);
-    
+
     if (!notificationId) {
       console.error('Invalid notification ID');
       return;
@@ -128,7 +128,7 @@ export default function NotificationBell() {
       console.log('Mark as read response:', data);
 
       // Update local state immediately
-      setNotifications(prev => 
+      setNotifications(prev =>
         prev.map(n => n.id === notificationId ? { ...n, isRead: true } : n)
       );
       setUnreadCount(prev => Math.max(0, prev - 1));
@@ -139,9 +139,9 @@ export default function NotificationBell() {
 
   const handleDismiss = async (notificationId: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    
+
     console.log('Dismissing notification ID:', notificationId);
-    
+
     if (!notificationId) {
       console.error('Invalid notification ID');
       return;
@@ -194,7 +194,7 @@ export default function NotificationBell() {
 
   const handleNotificationClick = (notification: Notification) => {
     console.log('Notification clicked:', notification);
-    
+
     if (!notification.isRead) {
       handleMarkAsRead(notification.id, {} as React.MouseEvent);
     }
@@ -204,7 +204,7 @@ export default function NotificationBell() {
 
   const getTimeAgo = (date: string) => {
     const seconds = Math.floor((new Date().getTime() - new Date(date).getTime()) / 1000);
-    
+
     if (seconds < 60) return 'Just now';
     if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
     if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
@@ -236,7 +236,7 @@ export default function NotificationBell() {
       {showDropdown && (
         <div className="absolute right-0 mt-2 w-[calc(100vw-2rem)] md:w-96 bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden z-50">
           {/* Header */}
-          <div className="p-4 border-b border-gray-200 bg-gradient-to-r from-yellow-50 to-white">
+          <div className="p-4 border-b border-gray-200 bg-linear-to-r from-yellow-50 to-white">
             <div className="flex items-center justify-between mb-2">
               <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
                 <Bell className="w-5 h-5" />
@@ -286,14 +286,13 @@ export default function NotificationBell() {
             ) : (
               notifications.map((notification) => {
                 const IconComponent = getCategoryIcon(notification.metadata.categoryIcon);
-                
+
                 return (
                   <div
                     key={notification.id}
                     onClick={() => handleNotificationClick(notification)}
-                    className={`p-4 border-b border-gray-100 hover:bg-gray-50 cursor-pointer transition-colors ${
-                      !notification.isRead ? 'bg-yellow-50' : ''
-                    }`}
+                    className={`p-4 border-b border-gray-100 hover:bg-gray-50 cursor-pointer transition-colors ${!notification.isRead ? 'bg-yellow-50' : ''
+                      }`}
                   >
                     <div className="flex items-start gap-3">
                       {/* Icon */}
@@ -364,7 +363,7 @@ export default function NotificationBell() {
                   setShowDropdown(false);
                   router.push('/notifications');
                 }}
-                className="w-full px-4 py-2 bg-yellow-400 hover:bg-yellow-500 text-gray-900 rounded-xl font-medium text-sm transition-colors"
+                className="w-full btn-primary text-sm shadow-none hover:shadow-sm"
               >
                 View All Notifications
               </button>

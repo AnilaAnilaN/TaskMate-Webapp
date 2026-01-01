@@ -33,10 +33,10 @@ export default function CookiesPolicyPage() {
   return (
     <>
       <Header />
-      
+
       <div className="min-h-screen bg-gray-50">
         {/* Hero Header */}
-        <div className="bg-gradient-to-br from-yellow-400 to-yellow-500 py-16 md:py-24 mt-16">
+        <div className="bg-linear-to-br from-yellow-400 to-yellow-500 py-16 md:py-24 mt-16">
           <div className="max-w-4xl mx-auto px-4 md:px-6 lg:px-8">
             <div className="flex items-center gap-3 mb-4">
               <Cookie className="w-10 h-10 text-gray-900" />
@@ -74,16 +74,13 @@ export default function CookiesPolicyPage() {
                 const Icon = type.icon;
                 return (
                   <div
-                    key={index}
                     className="bg-white rounded-2xl border border-gray-200 p-6 md:p-8"
                   >
                     <div className="flex items-start gap-4 mb-4">
-                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${
-                        type.required ? 'bg-green-100' : 'bg-blue-100'
-                      }`}>
-                        <Icon className={`w-6 h-6 ${
-                          type.required ? 'text-green-600' : 'text-blue-600'
-                        }`} />
+                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${type.required ? 'bg-green-100' : 'bg-blue-100'
+                        }`}>
+                        <Icon className={`w-6 h-6 ${type.required ? 'text-green-600' : 'text-blue-600'
+                          }`} />
                       </div>
                       <div className="flex-1">
                         <div className="flex items-center gap-3 mb-2">
@@ -176,21 +173,21 @@ export default function CookiesPolicyPage() {
           </div>
 
           {/* Contact */}
-          <div className="bg-gradient-to-br from-yellow-50 to-white rounded-2xl border border-yellow-200 p-6 md:p-8 text-center">
+          <div className="bg-linear-to-br from-yellow-50 to-white rounded-2xl border border-yellow-200 p-6 md:p-8 text-center">
             <h2 className="text-2xl font-bold text-gray-900 mb-4">Questions About Cookies?</h2>
             <p className="text-gray-600 mb-6">
               If you have any questions about our use of cookies, please contact us at:
             </p>
             <a
               href="mailto:privacy@taskmate.com"
-              className="inline-flex items-center gap-2 px-6 py-3 bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-bold rounded-xl transition-all hover:scale-105"
+              className="btn-primary px-6 py-3 font-bold"
             >
               privacy@taskmate.com
             </a>
           </div>
         </div>
       </div>
-      
+
       <Footer />
     </>
   );

@@ -78,7 +78,7 @@ function VerifyEmailForm() {
         <h1 className="text-3xl font-bold text-red-600 mb-4">Invalid Link</h1>
         <p className="text-gray-600 mb-8">This verification link is missing required information.</p>
         <Link href="/auth">
-          <button className="w-full py-4 bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-bold rounded-xl transition">
+          <button className="w-full btn-primary text-lg py-4">
             Back to Signup / Login
           </button>
         </Link>
@@ -136,7 +136,7 @@ function VerifyEmailForm() {
         <div className="mt-8">
           <button
             onClick={() => router.push('/auth')}
-            className="w-full py-5 bg-yellow-400 hover:bg-yellow-500 text-gray-900 text-xl font-bold rounded-2xl transition"
+            className="w-full btn-primary text-xl py-5 shadow-lg"
           >
             Go to Login
           </button>
@@ -159,7 +159,7 @@ function VerifyEmailForm() {
 
 export default function VerifyEmailPage() {
   return (
-    <div className="min-h-screen grid place-items-center bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 px-4">
+    <div className="min-h-screen grid place-items-center bg-linear-to-br from-indigo-50 via-purple-50 to-pink-50 px-4">
       <VerifyEmailForm />
     </div>
   );

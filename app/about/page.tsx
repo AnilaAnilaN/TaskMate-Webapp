@@ -55,17 +55,17 @@ export default function AboutPage() {
   return (
     <>
       <Header />
-      
+
       <div className="min-h-screen bg-gray-50">
         {/* Hero */}
-        <div className="bg-gradient-to-br from-yellow-400 to-yellow-500 py-16 md:py-24 mt-16">
+        <div className="bg-linear-to-br from-yellow-400 to-yellow-500 py-16 md:py-24 mt-16">
           <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8">
             <div className="max-w-3xl">
               <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-6">
                 About TaskMate
               </h1>
               <p className="text-lg md:text-xl text-gray-800 leading-relaxed">
-                We're on a mission to help people organize their lives, accomplish their goals, 
+                We're on a mission to help people organize their lives, accomplish their goals,
                 and spend less time managing tasks so they have more time for what truly matters.
               </p>
             </div>
@@ -86,24 +86,24 @@ export default function AboutPage() {
                 </h2>
                 <div className="space-y-4 text-gray-600 leading-relaxed">
                   <p>
-                    TaskMate was born from a simple frustration: existing task managers were either 
-                    too complex or too simple. We wanted something that was powerful yet intuitive, 
+                    TaskMate was born from a simple frustration: existing task managers were either
+                    too complex or too simple. We wanted something that was powerful yet intuitive,
                     feature-rich yet uncluttered.
                   </p>
                   <p>
-                    What started as a side project quickly grew into something bigger. We realized 
-                    that thousands of people were struggling with the same challenge—staying organized 
+                    What started as a side project quickly grew into something bigger. We realized
+                    that thousands of people were struggling with the same challenge—staying organized
                     without feeling overwhelmed.
                   </p>
                   <p>
-                    Today, TaskMate helps over 1,000 users organize their days, prioritize what matters, 
+                    Today, TaskMate helps over 1,000 users organize their days, prioritize what matters,
                     and collaborate with others. And we're just getting started.
                   </p>
                 </div>
               </div>
 
               <div className="relative">
-                <div className="bg-gradient-to-br from-yellow-100 to-yellow-200 rounded-2xl p-8 md:p-12">
+                <div className="bg-linear-to-br from-yellow-100 to-yellow-200 rounded-2xl p-8 md:p-12">
                   <div className="grid grid-cols-2 gap-6">
                     <div className="text-center">
                       <div className="text-4xl font-bold text-gray-900 mb-2">1,000+</div>
@@ -136,7 +136,7 @@ export default function AboutPage() {
                 Our Mission
               </h2>
               <p className="text-lg text-gray-600">
-                To empower individuals and teams to achieve more by providing simple, 
+                To empower individuals and teams to achieve more by providing simple,
                 effective tools for task management and collaboration.
               </p>
             </div>
@@ -229,7 +229,7 @@ export default function AboutPage() {
         </section>
 
         {/* CTA Section */}
-        <section className="py-16 md:py-24 bg-gradient-to-br from-yellow-400 to-yellow-500">
+        <section className="py-16 md:py-24 bg-linear-to-br from-yellow-400 to-yellow-500">
           <div className="max-w-4xl mx-auto px-4 md:px-6 lg:px-8 text-center">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
               Join Our Growing Community
@@ -239,7 +239,7 @@ export default function AboutPage() {
             </p>
             <a
               href="/auth"
-              className="inline-flex items-center gap-2 px-8 py-4 bg-gray-900 hover:bg-gray-800 text-white font-bold rounded-xl transition-all hover:scale-105 shadow-lg"
+              className="btn-primary px-8 py-4 shadow-lg text-white"
             >
               Get Started Free
               <TrendingUp className="w-5 h-5" />
@@ -247,7 +247,7 @@ export default function AboutPage() {
           </div>
         </section>
       </div>
-      
+
       <Footer />
     </>
   );

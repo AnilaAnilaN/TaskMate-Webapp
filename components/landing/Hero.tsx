@@ -10,7 +10,7 @@ export default function Hero() {
   };
 
   return (
-    <section className="pt-24 md:pt-32 pb-16 md:pb-24 bg-gradient-to-b from-yellow-50 to-white">
+    <section className="pt-24 md:pt-32 pb-16 md:pb-24 bg-linear-to-b from-yellow-50 to-white">
       <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8">
         <div className="grid lg:grid-cols-2 gap-8 md:gap-12 items-center">
           {/* Left Content */}
@@ -26,7 +26,7 @@ export default function Hero() {
             </h1>
 
             <p className="text-base md:text-lg lg:text-xl text-gray-600 leading-relaxed">
-              TaskMate helps you stay on top of your tasks with smart categories, 
+              TaskMate helps you stay on top of your tasks with smart categories,
               priority management, and gentle reminders—all in one beautiful app.
             </p>
 
@@ -70,7 +70,7 @@ export default function Hero() {
               {/* Browser chrome mockup */}
               <div className="relative overflow-hidden rounded-2xl border border-gray-200 bg-gray-50 shadow-2xl shadow-black/20 transition-transform duration-500 hover:scale-[1.02]">
                 {/* Top bar */}
-                <div className="flex items-center gap-2 border-b border-gray-200 bg-gradient-to-b from-gray-100 to-gray-50 px-4 py-3">
+                <div className="flex items-center gap-2 border-b border-gray-200 bg-linear-to-b from-gray-100 to-gray-50 px-4 py-3">
                   <div className="flex gap-2">
                     <div className="h-3 w-3 rounded-full bg-red-400"></div>
                     <div className="h-3 w-3 rounded-full bg-yellow-400"></div>
@@ -79,14 +79,14 @@ export default function Hero() {
                   <div className="mx-auto flex items-center gap-2 rounded-lg bg-white px-6 md:px-10 py-1.5 text-xs text-gray-500 shadow-inner">
                     <div className="w-3 h-3 text-gray-400">
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M12 15l-3-3h6l-3 3z"/>
+                        <path d="M12 15l-3-3h6l-3 3z" />
                       </svg>
                     </div>
                     <span className="font-medium">taskmate.app/dashboard</span>
                   </div>
                   <div className="w-16"></div>
                 </div>
-                
+
                 {/* Screenshot */}
                 <div className="relative bg-white">
                   <Image
@@ -99,7 +99,7 @@ export default function Hero() {
                   />
                 </div>
               </div>
-              
+
               {/* Decorative gradient blobs */}
               <div className="absolute -top-10 -right-10 w-40 h-40 bg-yellow-300 rounded-full blur-3xl opacity-30 -z-10 animate-pulse"></div>
               <div className="absolute -bottom-10 -left-10 w-48 h-48 bg-yellow-200 rounded-full blur-3xl opacity-40 -z-10"></div>

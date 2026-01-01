@@ -7,7 +7,7 @@ import { CheckCircle, ArrowLeft } from 'lucide-react';
 
 export default function GoodbyePage() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-linear-to-br from-gray-50 to-gray-100 flex items-center justify-center p-4">
       <div className="max-w-md w-full">
         <div className="bg-white rounded-3xl shadow-2xl p-8 text-center">
           {/* Icon */}
@@ -43,13 +43,13 @@ export default function GoodbyePage() {
           <div className="space-y-3">
             <Link
               href="/register"
-              className="block w-full px-6 py-3 bg-yellow-400 hover:bg-yellow-500 text-gray-900 rounded-xl font-semibold transition-colors"
+              className="block w-full btn-primary py-3 font-semibold shadow-lg"
             >
               Create New Account
             </Link>
             <Link
               href="/"
-              className="block w-full px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-medium transition-colors flex items-center justify-center gap-2"
+              className="block w-full btn-secondary py-3 font-medium transition-colors flex items-center justify-center gap-2"
             >
               <ArrowLeft className="w-4 h-4" />
               Back to Home

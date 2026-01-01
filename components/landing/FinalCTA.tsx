@@ -3,7 +3,7 @@ import { Zap, Lock, Heart, ArrowRight, CheckCircle } from 'lucide-react';
 
 export default function FinalCTA() {
   return (
-    <section className="py-16 md:py-24 bg-gradient-to-br from-yellow-400 via-yellow-500 to-yellow-400">
+    <section className="py-16 md:py-24 bg-linear-to-br from-yellow-400 via-yellow-500 to-yellow-400">
       <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8">
         <div className="grid lg:grid-cols-2 gap-8 md:gap-12 items-center">
           {/* Left Content */}
@@ -12,7 +12,7 @@ export default function FinalCTA() {
               Ready to Get Organized?
             </h2>
             <p className="text-lg md:text-xl text-gray-800 leading-relaxed">
-              Join TaskMate today and take control of your productivity. 
+              Join TaskMate today and take control of your productivity.
               Start accomplishing more with less stress.
             </p>
 

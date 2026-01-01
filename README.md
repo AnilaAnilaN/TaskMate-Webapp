@@ -1,60 +1,82 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# TaskMate - Modern Task Management System
 
-## Getting Started
+TaskMate is a comprehensive, production-ready task management application built with Next.js 16. It features real-time updates, AI-powered assistance, and a focus on visual excellence.
 
-First, run the development server:
+![Dashboard Preview](public/dashboard-preview.jpeg)
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## ✨ Features
+
+- **Dashboard**: High-level overview of your daily tasks, upcoming deadlines, and category-based stats.
+- **Categorization**: Organize tasks with custom colors and icons.
+- **Real-time Synchronization**: Powered by Ably for instant updates across devices.
+- **AI Assistant**: Integration with Groq for smart task suggestions and productivity advice.
+- **Notifications**: Automated reminders for due and overdue tasks.
+- **Rich Text Editing**: Integrated Tiptap editor for detailed task descriptions.
+- **Authentication**: Secure JWT-based authentication with email verification and password reset flows.
+
+## 🚀 Tech Stack
+
+- **Framework**: Next.js 16 (App Router)
+- **Database**: MongoDB with Mongoose
+- **Styling**: Vanilla CSS (Tailwind CSS for some utilities)
+- **Real-time**: Ably
+- **AI**: Groq SDK
+- **Editor**: Tiptap
+- **Icons**: Lucide React
+
+## 🛠️ Getting Started
+
+### Prerequisites
+
+- Node.js 18+ 
+- MongoDB instance (local or Atlas)
+- Ably API Key
+- Groq API Key
+
+### Installation
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/yourusername/task-mate.git
+   cd task-mate
+   ```
+
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+
+3. Set up environment variables:
+   Copy `.env.example` to `.env.local` and fill in your credentials.
+   ```bash
+   cp .env.example .env.local
+   ```
+
+4. Run the development server:
+   ```bash
+   npm run dev
+   ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 🤝 Contributing & Collaboration
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+This project is **open for collaborations!** Whether you want to fix a bug, suggest a feature, or improve documentation, we welcome all contributors.
 
-## Learn More
+1. Fork the Project
+2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the Branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
 
-To learn more about Next.js, take a look at the following resources:
+## 📜 License
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Distributed under the MIT License. See `LICENSE` for more information.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 🔧 Troubleshooting
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
-
----
-
-## Required environment variables 🔧
-
-For registration and email verification to work, set the following environment variables (e.g., in `.env.local`):
-
-- `MONGODB_URI` — MongoDB connection string
-- `NEXT_PUBLIC_BASE_URL` — Your app base URL (e.g. `http://localhost:3000`)
-- `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS` — SMTP credentials for sending verification emails
-
-If you don't set `NEXT_PUBLIC_BASE_URL`, the signup route will fall back to `http://localhost:3000` in development.
+- **MongoDB Errors**: If you encounter `Invalid namespace specified`, ensure your `MONGODB_URI` does not contain invalid characters or spaces in the database name.
+- **Email Sending**: If emails are not being sent, check that your SMTP credentials are correctly configured in `.env.local`.
 
 ---
-
-New endpoints:
-
-- POST `/api/auth/forgot-password` — { email } : sends a reset link to the email if the user exists.
-- POST `/api/auth/reset-password` — { token, newPassword } : reset the password for a valid token.
-
-Troubleshooting tips:
-
-- If you see a Mongo error like `Invalid namespace specified`, your `MONGODB_URI` or database name may contain invalid characters (spaces, special characters) — ensure the DB name in the URI is valid and has no spaces.
-- The server now surfaces server-side errors as JSON so the client will display helpful messages instead of a parsing error.
+Built by Anila Nawaz.

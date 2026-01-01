@@ -1,5 +1,8 @@
 // types/chat.ts
 // ============================================
+// Re-export User from auth.types to maintain backward compatibility
+export type { User } from './auth.types';
+
 export interface Message {
   id?: string;
   _id?: string;
@@ -29,10 +32,3 @@ export interface Conversation {
   unreadCount: number;
 }
 
-export interface User {
-  id: string;
-  name: string;
-  email: string;
-  profileImage?: string | null;
-  bio?: string;
-}

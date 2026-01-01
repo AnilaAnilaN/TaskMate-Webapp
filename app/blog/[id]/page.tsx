@@ -204,11 +204,11 @@ export default async function BlogPostPage({ params }: { params: Promise<{ id: s
   return (
     <>
       <Header />
-      
+
       <div className="min-h-screen bg-gray-50">
         {/* Hero Section with Featured Image */}
         <div className="relative h-[50vh] md:h-[60vh] mt-16">
-          <div className="absolute inset-0 bg-gradient-to-t from-gray-900/80 to-transparent z-10"></div>
+          <div className="absolute inset-0 bg-linear-to-t from-gray-900/80 to-transparent z-10"></div>
           <Image
             src={post.image}
             alt={post.title}
@@ -216,28 +216,28 @@ export default async function BlogPostPage({ params }: { params: Promise<{ id: s
             className="object-cover"
             priority
           />
-          
+
           {/* Title Overlay */}
           <div className="absolute inset-0 z-20 flex items-end">
             <div className="max-w-4xl mx-auto px-4 md:px-6 lg:px-8 pb-12 md:pb-16 w-full">
-              <Link 
+              <Link
                 href="/blog"
                 className="inline-flex items-center gap-2 text-white/90 hover:text-white mb-6 transition-colors"
               >
                 <ArrowLeft className="w-4 h-4" />
                 Back to Blog
               </Link>
-              
+
               <div className="mb-4">
                 <span className="px-4 py-1.5 bg-yellow-400 text-gray-900 rounded-full text-sm font-semibold">
                   {post.category}
                 </span>
               </div>
-              
+
               <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-6 leading-tight">
                 {post.title}
               </h1>
-              
+
               <div className="flex flex-wrap items-center gap-6 text-white/90">
                 <div className="flex items-center gap-2">
                   <User className="w-5 h-5" />
@@ -265,10 +265,10 @@ export default async function BlogPostPage({ params }: { params: Promise<{ id: s
             <div className="absolute -top-2 -right-2 w-8 h-8 border-t-4 border-r-4 border-yellow-400 rounded-tr-lg"></div>
             <div className="absolute -bottom-2 -left-2 w-8 h-8 border-b-4 border-l-4 border-yellow-400 rounded-bl-lg"></div>
             <div className="absolute -bottom-2 -right-2 w-8 h-8 border-b-4 border-r-4 border-yellow-400 rounded-br-lg"></div>
-            
+
             <div className="bg-white rounded-3xl shadow-2xl p-8 md:p-12 lg:p-16 border-2 border-gray-100">
               {/* Article Body */}
-              <div 
+              <div
                 className="prose prose-lg max-w-none
                   prose-headings:font-bold prose-headings:text-gray-900
                   prose-h2:text-2xl prose-h2:md:text-3xl prose-h2:mt-12 prose-h2:mb-4
@@ -307,7 +307,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ id: s
           </div>
 
           {/* Author Bio */}
-          <div className="mt-12 bg-gradient-to-br from-yellow-50 to-white rounded-3xl p-8 md:p-10 border-2 border-yellow-200 shadow-lg">
+          <div className="mt-12 bg-linear-to-br from-yellow-50 to-white rounded-3xl p-8 md:p-10 border-2 border-yellow-200 shadow-lg">
             <div className="flex items-start gap-6">
               <div className="w-20 h-20 bg-yellow-400 rounded-full flex items-center justify-center flex-shrink-0">
                 <User className="w-10 h-10 text-gray-900" />
@@ -315,7 +315,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ id: s
               <div>
                 <h3 className="text-xl font-bold text-gray-900 mb-2">About {post.author}</h3>
                 <p className="text-gray-600 leading-relaxed">
-                  {post.author} is a productivity expert and writer passionate about helping people accomplish more while maintaining balance. 
+                  {post.author} is a productivity expert and writer passionate about helping people accomplish more while maintaining balance.
                   With years of experience in personal development and time management, they share practical strategies that make a real difference.
                 </p>
               </div>
@@ -326,7 +326,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ id: s
           <div className="mt-12 text-center">
             <Link
               href="/blog"
-              className="inline-flex items-center gap-2 px-6 py-3 bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-bold rounded-xl transition-all hover:scale-105 shadow-lg"
+              className="btn-primary px-6 py-3 font-bold shadow-lg"
             >
               <ArrowLeft className="w-5 h-5" />
               Back to All Articles
@@ -334,7 +334,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ id: s
           </div>
         </article>
       </div>
-      
+
       <Footer />
     </>
   );
@@ -344,7 +344,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ id: s
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const post = blogPosts[id as keyof typeof blogPosts];
-  
+
   if (!post) {
     return {
       title: 'Post Not Found - TaskMate Blog',

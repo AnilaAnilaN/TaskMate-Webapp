@@ -29,16 +29,16 @@ export default function ContactPage() {
   return (
     <>
       <Header />
-      
+
       <div className="min-h-screen bg-gray-50">
         {/* Hero Header */}
-        <div className="bg-gradient-to-br from-yellow-400 to-yellow-500 py-16 md:py-20 mt-16">
+        <div className="bg-linear-to-br from-yellow-400 to-yellow-500 py-16 md:py-20 mt-16">
           <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 text-center">
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-6">
               Get in Touch
             </h1>
             <p className="text-lg md:text-xl text-gray-800 max-w-2xl mx-auto">
-              Have questions, feedback, or need help? We're here to assist you. 
+              Have questions, feedback, or need help? We're here to assist you.
               Send us a message and we'll get back to you soon.
             </p>
           </div>
@@ -75,7 +75,7 @@ export default function ContactPage() {
               </div>
 
               {/* Additional Info */}
-              <div className="bg-gradient-to-br from-yellow-50 to-white rounded-2xl border border-yellow-200 p-6">
+              <div className="bg-linear-to-br from-yellow-50 to-white rounded-2xl border border-yellow-200 p-6">
                 <h3 className="font-bold text-gray-900 mb-3">Quick Support</h3>
                 <p className="text-gray-600 text-sm mb-4">
                   For immediate assistance, check out our Help Center or use the live chat feature inside the app.
@@ -101,19 +101,19 @@ export default function ContactPage() {
               Looking for Answers?
             </h3>
             <p className="text-gray-600 mb-6 max-w-2xl mx-auto">
-              Many common questions are answered in our FAQ section. 
+              Many common questions are answered in our FAQ section.
               Check there first for quick solutions to common issues.
             </p>
             <a
               href="/#faq"
-              className="inline-flex items-center gap-2 px-6 py-3 bg-gray-100 hover:bg-yellow-100 text-gray-900 font-semibold rounded-xl transition-all"
+              className="inline-flex items-center gap-2 btn-secondary px-6 py-3"
             >
               View FAQ
             </a>
           </div>
         </div>
       </div>
-      
+
       <Footer />
     </>
   );

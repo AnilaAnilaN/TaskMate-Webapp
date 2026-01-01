@@ -6,7 +6,7 @@
 import { ChevronLeft, ChevronRight, Plus, MoreVertical, Clock, CheckCircle, Play, Pause } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import AddCategoryModal from '@/components/dashboard/AddCategoryModal';
+import CategoryModal from '@/components/dashboard/CategoryModal';
 import { getCategoryIcon } from '@/lib/config/categoryIcons';
 import { useTimer } from '@/lib/contexts/TimerContext';
 
@@ -120,11 +120,11 @@ export default function DashboardClient() {
   const renderCalendar = () => {
     const { firstDay, daysInMonth } = getDaysInMonth(currentDate);
     const days = [];
-    
+
     for (let i = 0; i < (firstDay || 7) - 1; i++) {
       days.push(<div key={`empty-${i}`} className="text-center py-2"></div>);
     }
-    
+
     for (let day = 1; day <= daysInMonth; day++) {
       const isSelected = day === selectedDate;
       const hasTask = (calendarTasks[day] || 0) > 0;
@@ -135,7 +135,7 @@ export default function DashboardClient() {
         </div>
       );
     }
-    
+
     return (
       <div className="mt-4">
         <div className="grid grid-cols-7 gap-1 mb-2 text-xs text-gray-500 font-medium">
@@ -155,8 +155,8 @@ export default function DashboardClient() {
             <div className="flex items-center justify-between mb-4">
               <h2 className="font-semibold text-gray-900">{currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</h2>
               <div className="flex gap-1">
-                <button onClick={() => setCurrentDate(new Date(currentDate.setMonth(currentDate.getMonth() - 1)))} className="p-1.5 hover:bg-gray-100 rounded-lg"><ChevronLeft className="w-4 h-4" /></button>
-                <button onClick={() => setCurrentDate(new Date(currentDate.setMonth(currentDate.getMonth() + 1)))} className="p-1.5 hover:bg-gray-100 rounded-lg"><ChevronRight className="w-4 h-4" /></button>
+                <button onClick={() => setCurrentDate(new Date(currentDate.setMonth(currentDate.getMonth() - 1)))} className="btn-ghost p-1.5"><ChevronLeft className="w-4 h-4" /></button>
+                <button onClick={() => setCurrentDate(new Date(currentDate.setMonth(currentDate.getMonth() + 1)))} className="btn-ghost p-1.5"><ChevronRight className="w-4 h-4" /></button>
               </div>
             </div>
             {renderCalendar()}
@@ -197,7 +197,7 @@ export default function DashboardClient() {
               <div className="text-center py-8 text-gray-500">
                 <CheckCircle className="w-12 h-12 mx-auto mb-3 text-gray-300" />
                 <p className="text-sm">No tasks for today</p>
-                <button onClick={() => router.push('/tasks/new')} className="mt-4 px-4 py-2 bg-yellow-400 hover:bg-yellow-500 text-gray-900 rounded-xl text-sm font-medium">Create a task</button>
+                <button onClick={() => router.push('/tasks/new')} className="mt-4 btn-primary text-sm py-2 px-4 shadow-none hover:shadow-sm">Create a task</button>
               </div>
             ) : (
               todayTasks.map((task) => {
@@ -282,7 +282,7 @@ export default function DashboardClient() {
         </div>
       </div>
 
-      <AddCategoryModal isOpen={showAddCategory} onClose={() => setShowAddCategory(false)} onSuccess={() => { setShowAddCategory(false); router.refresh(); }} />
+      <CategoryModal isOpen={showAddCategory} mode="add" onClose={() => setShowAddCategory(false)} onSuccess={() => { setShowAddCategory(false); router.refresh(); }} />
     </>
   );
 }

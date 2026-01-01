@@ -15,7 +15,7 @@ interface TaskChatProps {
 const formatMessage = (text: string) => {
   // Split by code blocks first to preserve them
   const parts = text.split(/(```[\s\S]*?```|`[^`]+`)/g);
-  
+
   return parts.map((part, i) => {
     // If it's a code block, render it specially
     if (part.startsWith('```')) {
@@ -23,7 +23,7 @@ const formatMessage = (text: string) => {
       const lines = code.split('\n');
       const language = lines[0];
       const codeContent = lines.slice(1).join('\n') || code;
-      
+
       return (
         <div key={i} className="my-3 rounded-lg bg-gray-900 text-gray-100 overflow-x-auto">
           {language && (
@@ -37,7 +37,7 @@ const formatMessage = (text: string) => {
         </div>
       );
     }
-    
+
     // Inline code
     if (part.startsWith('`') && part.endsWith('`')) {
       return (
@@ -46,7 +46,7 @@ const formatMessage = (text: string) => {
         </code>
       );
     }
-    
+
     // Process regular text for bold, italic, lists
     const lines = part.split('\n');
     return lines.map((line, j) => {
@@ -60,7 +60,7 @@ const formatMessage = (text: string) => {
           </div>
         );
       }
-      
+
       // Numbered lists
       if (line.trim().match(/^\d+\.\s/)) {
         const match = line.trim().match(/^(\d+)\.\s(.*)$/);
@@ -73,7 +73,7 @@ const formatMessage = (text: string) => {
           );
         }
       }
-      
+
       // Headers (## or ###)
       if (line.trim().startsWith('###')) {
         return (
@@ -89,7 +89,7 @@ const formatMessage = (text: string) => {
           </h3>
         );
       }
-      
+
       // Regular line
       return (
         <span key={`${i}-${j}`}>
@@ -105,17 +105,17 @@ const formatMessage = (text: string) => {
 const processInlineFormatting = (text: string) => {
   const parts = [];
   let currentIndex = 0;
-  
+
   // Regex to match **bold** or *italic*
   const regex = /(\*\*[^*]+\*\*|\*[^*]+\*)/g;
   let match;
-  
+
   while ((match = regex.exec(text)) !== null) {
     // Add text before the match
     if (match.index > currentIndex) {
       parts.push(text.slice(currentIndex, match.index));
     }
-    
+
     const matched = match[0];
     if (matched.startsWith('**') && matched.endsWith('**')) {
       // Bold text
@@ -132,15 +132,15 @@ const processInlineFormatting = (text: string) => {
         </em>
       );
     }
-    
+
     currentIndex = match.index + matched.length;
   }
-  
+
   // Add remaining text
   if (currentIndex < text.length) {
     parts.push(text.slice(currentIndex));
   }
-  
+
   return parts.length > 0 ? parts : text;
 };
 
@@ -172,7 +172,7 @@ export default function TaskChat({ taskId, isOpen, onClose }: TaskChatProps) {
     try {
       const response = await fetch(`/api/tasks/${taskId}/chat`);
       const data = await response.json();
-      
+
       if (data.success) {
         setMessages(data.messages);
       }
@@ -278,12 +278,12 @@ export default function TaskChat({ taskId, isOpen, onClose }: TaskChatProps) {
               <p className="text-xs text-gray-500">Context-aware AI help</p>
             </div>
           </div>
-          
+
           <div className="flex items-center gap-2">
             {messages.length > 0 && (
               <button
                 onClick={clearHistory}
-                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                className="btn-ghost"
                 title="Clear chat"
               >
                 <Trash2 className="w-4 h-4 text-gray-600" />
@@ -291,7 +291,7 @@ export default function TaskChat({ taskId, isOpen, onClose }: TaskChatProps) {
             )}
             <button
               onClick={onClose}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              className="btn-ghost"
             >
               <X className="w-5 h-5 text-gray-600" />
             </button>
@@ -345,13 +345,12 @@ export default function TaskChat({ taskId, isOpen, onClose }: TaskChatProps) {
                     <Sparkles className="w-4 h-4 text-white" />
                   </div>
                 )}
-                
+
                 <div
-                  className={`max-w-[85%] md:max-w-[75%] px-4 py-3 rounded-2xl ${
-                    msg.role === 'user'
+                  className={`max-w-[85%] md:max-w-[75%] px-4 py-3 rounded-2xl ${msg.role === 'user'
                       ? 'bg-yellow-400 text-gray-900'
                       : 'bg-gray-100 text-gray-900'
-                  }`}
+                    }`}
                 >
                   <div className="text-sm leading-relaxed">
                     {msg.role === 'assistant' ? formatMessage(msg.content) : msg.content}
@@ -372,7 +371,7 @@ export default function TaskChat({ taskId, isOpen, onClose }: TaskChatProps) {
               </div>
             ))
           )}
-          
+
           {loading && (
             <div className="flex gap-3 justify-start">
               <div className="w-8 h-8 bg-linear-to-br from-yellow-400 to-orange-500 rounded-lg flex items-center justify-center shrink-0">
@@ -386,7 +385,7 @@ export default function TaskChat({ taskId, isOpen, onClose }: TaskChatProps) {
               </div>
             </div>
           )}
-          
+
           <div ref={messagesEndRef} />
         </div>
 
@@ -401,13 +400,13 @@ export default function TaskChat({ taskId, isOpen, onClose }: TaskChatProps) {
               placeholder="Ask about this task..."
               disabled={loading}
               rows={1}
-              className="flex-1 px-4 py-3 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent resize-none disabled:opacity-50 text-sm shadow-sm"
+              className="flex-1 input-responsive resize-none disabled:opacity-50 text-sm shadow-sm"
               style={{ minHeight: '48px', maxHeight: '120px' }}
             />
             <button
               onClick={sendMessage}
               disabled={!input.trim() || loading}
-              className="px-5 py-3 bg-yellow-400 hover:bg-yellow-500 disabled:bg-gray-300 disabled:cursor-not-allowed rounded-xl transition-all flex items-center justify-center shadow-sm hover:shadow-md"
+              className="px-5 py-3 btn-primary disabled:bg-gray-300 disabled:cursor-not-allowed"
             >
               {loading ? (
                 <Loader2 className="w-5 h-5 animate-spin" />

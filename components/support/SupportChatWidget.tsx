@@ -170,17 +170,17 @@ export default function SupportChatWidget() {
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
-          className="fixed bottom-6 right-6 w-16 h-16 bg-gradient-to-br from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 text-gray-900 rounded-2xl shadow-2xl flex items-center justify-center transition-all hover:scale-110 z-50 group"
+          className="fixed bottom-6 right-6 w-16 h-16 bg-linear-to-br from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 text-gray-900 rounded-2xl shadow-2xl flex items-center justify-center transition-all hover:scale-110 z-50 group"
           aria-label="Open chat"
         >
           <div className="relative">
             <Bot className="w-8 h-8" />
             <span className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></span>
           </div>
-          
+
           {/* Pulse animation */}
           <span className="absolute inset-0 rounded-2xl bg-yellow-400 animate-ping opacity-20"></span>
-          
+
           {/* Tooltip */}
           <div className="absolute bottom-full right-0 mb-3 px-4 py-2 bg-gray-900 text-white text-sm rounded-xl opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none shadow-xl">
             <div className="font-semibold">Need Help?</div>
@@ -191,11 +191,10 @@ export default function SupportChatWidget() {
 
       {/* Chat Window */}
       {isOpen && (
-        <div className={`fixed bottom-6 right-6 w-96 bg-white rounded-2xl shadow-2xl border-2 border-yellow-400 z-50 transition-all ${
-          isMinimized ? 'h-16' : 'h-[600px]'
-        } flex flex-col`}>
+        <div className={`fixed bottom-6 right-6 w-96 bg-white rounded-2xl shadow-2xl border-2 border-yellow-400 z-50 transition-all ${isMinimized ? 'h-16' : 'h-[600px]'
+          } flex flex-col`}>
           {/* Header */}
-          <div className="bg-gradient-to-r from-yellow-400 to-yellow-500 text-gray-900 px-6 py-4 rounded-t-2xl flex items-center justify-between">
+          <div className="bg-linear-to-r from-yellow-400 to-yellow-500 text-gray-900 px-6 py-4 rounded-t-2xl flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center">
                 <Bot className="w-6 h-6 text-yellow-600" />
@@ -236,9 +235,8 @@ export default function SupportChatWidget() {
                     className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
                   >
                     <div className={`flex gap-2 max-w-[80%] ${message.sender === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
-                        message.sender === 'bot' ? 'bg-yellow-100' : 'bg-gray-200'
-                      }`}>
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${message.sender === 'bot' ? 'bg-yellow-100' : 'bg-gray-200'
+                        }`}>
                         {message.sender === 'bot' ? (
                           <Bot className="w-5 h-5 text-yellow-600" />
                         ) : (
@@ -247,11 +245,10 @@ export default function SupportChatWidget() {
                       </div>
                       <div>
                         <div
-                          className={`px-4 py-3 rounded-2xl ${
-                            message.sender === 'user'
+                          className={`px-4 py-3 rounded-2xl ${message.sender === 'user'
                               ? 'bg-yellow-400 text-gray-900'
                               : 'bg-white text-gray-800 border border-gray-200'
-                          }`}
+                            }`}
                         >
                           <p className="text-sm whitespace-pre-line leading-relaxed">{message.text}</p>
                         </div>

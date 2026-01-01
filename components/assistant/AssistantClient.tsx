@@ -9,7 +9,7 @@ import type { AssistantMessage } from '@/types/assistant.types';
 const formatMessage = (text: string) => {
   // Split by code blocks first to preserve them
   const parts = text.split(/(```[\s\S]*?```|`[^`]+`)/g);
-  
+
   return parts.map((part, i) => {
     // If it's a code block, render it specially
     if (part.startsWith('```')) {
@@ -17,7 +17,7 @@ const formatMessage = (text: string) => {
       const lines = code.split('\n');
       const language = lines[0];
       const codeContent = lines.slice(1).join('\n') || code;
-      
+
       return (
         <div key={i} className="my-3 rounded-lg bg-gray-900 text-gray-100 overflow-x-auto">
           {language && (
@@ -31,7 +31,7 @@ const formatMessage = (text: string) => {
         </div>
       );
     }
-    
+
     // Inline code
     if (part.startsWith('`') && part.endsWith('`')) {
       return (
@@ -40,7 +40,7 @@ const formatMessage = (text: string) => {
         </code>
       );
     }
-    
+
     // Process regular text for bold, italic, lists
     const lines = part.split('\n');
     return lines.map((line, j) => {
@@ -54,7 +54,7 @@ const formatMessage = (text: string) => {
           </div>
         );
       }
-      
+
       // Numbered lists
       if (line.trim().match(/^\d+\.\s/)) {
         const match = line.trim().match(/^(\d+)\.\s(.*)$/);
@@ -67,7 +67,7 @@ const formatMessage = (text: string) => {
           );
         }
       }
-      
+
       // Headers (## or ###)
       if (line.trim().startsWith('###')) {
         return (
@@ -83,7 +83,7 @@ const formatMessage = (text: string) => {
           </h3>
         );
       }
-      
+
       // Regular line
       return (
         <span key={`${i}-${j}`}>
@@ -99,17 +99,17 @@ const formatMessage = (text: string) => {
 const processInlineFormatting = (text: string) => {
   const parts = [];
   let currentIndex = 0;
-  
+
   // Regex to match **bold** or *italic*
   const regex = /(\*\*[^*]+\*\*|\*[^*]+\*)/g;
   let match;
-  
+
   while ((match = regex.exec(text)) !== null) {
     // Add text before the match
     if (match.index > currentIndex) {
       parts.push(text.slice(currentIndex, match.index));
     }
-    
+
     const matched = match[0];
     if (matched.startsWith('**') && matched.endsWith('**')) {
       // Bold text
@@ -126,15 +126,15 @@ const processInlineFormatting = (text: string) => {
         </em>
       );
     }
-    
+
     currentIndex = match.index + matched.length;
   }
-  
+
   // Add remaining text
   if (currentIndex < text.length) {
     parts.push(text.slice(currentIndex));
   }
-  
+
   return parts.length > 0 ? parts : text;
 };
 
@@ -166,7 +166,7 @@ export default function AssistantClient() {
     try {
       const response = await fetch('/api/assistant?limit=100');
       const data = await response.json();
-      
+
       if (data.success) {
         setMessages(data.messages);
       }
@@ -266,7 +266,7 @@ export default function AssistantClient() {
       {/* Header */}
       <div className="flex items-center justify-between p-4 md:p-6 border-b border-gray-200 flex-shrink-0">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-xl flex items-center justify-center">
+          <div className="w-10 h-10 bg-linear-to-br from-yellow-400 to-orange-500 rounded-xl flex items-center justify-center">
             <Sparkles className="w-5 h-5 text-white" />
           </div>
           <div>
@@ -274,7 +274,7 @@ export default function AssistantClient() {
             <p className="text-xs text-gray-500">Powered by Groq (Llama 3.3)</p>
           </div>
         </div>
-        
+
         <button
           onClick={clearHistory}
           className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
@@ -323,17 +323,16 @@ export default function AssistantClient() {
               className={`flex gap-3 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
             >
               {msg.role === 'assistant' && (
-                <div className="w-8 h-8 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-lg flex items-center justify-center flex-shrink-0 mt-1">
+                <div className="w-8 h-8 bg-linear-to-br from-yellow-400 to-orange-500 rounded-lg flex items-center justify-center flex-shrink-0 mt-1">
                   <Sparkles className="w-4 h-4 text-white" />
                 </div>
               )}
-              
+
               <div
-                className={`max-w-[85%] md:max-w-[75%] px-4 py-3 rounded-2xl ${
-                  msg.role === 'user'
+                className={`max-w-[85%] md:max-w-[75%] px-4 py-3 rounded-2xl ${msg.role === 'user'
                     ? 'bg-yellow-400 text-gray-900'
                     : 'bg-gray-100 text-gray-900'
-                }`}
+                  }`}
               >
                 <div className="text-sm leading-relaxed">
                   {formatMessage(msg.content)}
@@ -354,10 +353,10 @@ export default function AssistantClient() {
             </div>
           ))
         )}
-        
+
         {loading && (
           <div className="flex gap-3 justify-start">
-            <div className="w-8 h-8 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-lg flex items-center justify-center flex-shrink-0">
+            <div className="w-8 h-8 bg-linear-to-br from-yellow-400 to-orange-500 rounded-lg flex items-center justify-center flex-shrink-0">
               <Sparkles className="w-4 h-4 text-white" />
             </div>
             <div className="bg-gray-100 px-4 py-3 rounded-2xl">
@@ -368,7 +367,7 @@ export default function AssistantClient() {
             </div>
           </div>
         )}
-        
+
         <div ref={messagesEndRef} />
       </div>
 

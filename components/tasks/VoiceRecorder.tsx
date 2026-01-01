@@ -36,12 +36,12 @@ export default function VoiceRecorder({ onTranscriptionComplete, className = '' 
       setTranscriptionSuccess(false);
 
       // Request microphone permission
-      const stream = await navigator.mediaDevices.getUserMedia({ 
+      const stream = await navigator.mediaDevices.getUserMedia({
         audio: {
           echoCancellation: true,
           noiseSuppression: true,
           sampleRate: 44100,
-        } 
+        }
       });
 
       // Create MediaRecorder
@@ -63,7 +63,7 @@ export default function VoiceRecorder({ onTranscriptionComplete, className = '' 
       mediaRecorder.onstop = async () => {
         const audioBlob = new Blob(chunksRef.current, { type: 'audio/webm' });
         stream.getTracks().forEach(track => track.stop());
-        
+
         // Send to transcription
         await transcribeAudio(audioBlob);
       };
@@ -94,7 +94,7 @@ export default function VoiceRecorder({ onTranscriptionComplete, className = '' 
     if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
       mediaRecorderRef.current.stop();
       setIsRecording(false);
-      
+
       if (timerRef.current) {
         clearInterval(timerRef.current);
         timerRef.current = null;
@@ -123,11 +123,11 @@ export default function VoiceRecorder({ onTranscriptionComplete, className = '' 
       }
 
       const data = await response.json();
-      
+
       if (data.success && data.text) {
         onTranscriptionComplete(data.text);
         setTranscriptionSuccess(true);
-        
+
         // Clear success message after 3 seconds
         setTimeout(() => {
           setTranscriptionSuccess(false);
@@ -157,7 +157,7 @@ export default function VoiceRecorder({ onTranscriptionComplete, className = '' 
           <button
             type="button"
             onClick={startRecording}
-            className="flex items-center gap-2 px-4 py-2.5 bg-yellow-400 hover:bg-yellow-500 text-gray-900 rounded-xl font-medium transition-all shadow-sm hover:shadow-md"
+            className="btn-primary"
           >
             <Mic className="w-5 h-5" />
             <span>Record Voice Note</span>
@@ -167,13 +167,13 @@ export default function VoiceRecorder({ onTranscriptionComplete, className = '' 
             <button
               type="button"
               onClick={stopRecording}
-              className="flex items-center gap-2 px-4 py-2.5 bg-red-500 hover:bg-red-600 text-white rounded-xl font-medium transition-all shadow-sm hover:shadow-md"
+              className="btn-danger"
             >
               <Square className="w-5 h-5 fill-current" />
               <span>Stop Recording</span>
             </button>
-            
-            <div className="flex items-center gap-2 px-3 py-2 bg-red-50 border border-red-200 rounded-xl">
+
+            <div className="status-box status-error py-1.5 px-3 items-center gap-2">
               <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
               <span className="text-sm font-medium text-red-700">
                 {formatDuration(duration)}
@@ -181,7 +181,7 @@ export default function VoiceRecorder({ onTranscriptionComplete, className = '' 
             </div>
           </div>
         ) : (
-          <div className="flex items-center gap-2 px-4 py-2.5 bg-blue-50 border border-blue-200 rounded-xl">
+          <div className="status-box status-info items-center gap-2">
             <Loader2 className="w-5 h-5 text-blue-600 animate-spin" />
             <span className="text-sm font-medium text-blue-700">
               Transcribing audio...
@@ -192,7 +192,7 @@ export default function VoiceRecorder({ onTranscriptionComplete, className = '' 
 
       {/* Success Message */}
       {transcriptionSuccess && (
-        <div className="flex items-start gap-2 p-3 bg-green-50 border border-green-200 rounded-xl">
+        <div className="status-box status-success">
           <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
           <div className="flex-1">
             <p className="text-sm font-medium text-green-800">
@@ -207,7 +207,7 @@ export default function VoiceRecorder({ onTranscriptionComplete, className = '' 
 
       {/* Error Message */}
       {error && (
-        <div className="flex items-start gap-2 p-3 bg-red-50 border border-red-200 rounded-xl">
+        <div className="status-box status-error">
           <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
           <div className="flex-1">
             <p className="text-sm font-medium text-red-800">Recording Error</p>

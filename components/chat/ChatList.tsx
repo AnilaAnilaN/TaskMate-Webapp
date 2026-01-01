@@ -34,7 +34,7 @@ export default function ChatList() {
     try {
       const response = await fetch('/api/chat/conversations');
       const data = await response.json();
-      
+
       if (!response.ok) {
         console.error('Fetch conversations error:', response.status, data);
         throw new Error(data.error || 'Failed to fetch conversations');
@@ -52,7 +52,7 @@ export default function ChatList() {
     if (!client) return;
 
     const presenceChannel = client.channels.get('global:presence');
-    
+
     try {
       const members = await presenceChannel.presence.get();
       const online = new Set(
@@ -97,7 +97,7 @@ export default function ChatList() {
     if (diffHours < 24) return `${diffHours}h ago`;
     if (diffDays === 1) return 'Yesterday';
     if (diffDays < 7) return `${diffDays}d ago`;
-    
+
     return messageDate.toLocaleDateString();
   };
 
@@ -108,7 +108,7 @@ export default function ChatList() {
 
   return (
     <div className="flex flex-col h-full bg-white">
-      <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-yellow-50 to-white">
+      <div className="p-6 border-b border-gray-200 bg-linear-to-r from-yellow-50 to-white">
         <div className="flex items-center justify-between mb-4">
           <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
             <MessageCircle className="w-7 h-7 text-yellow-500" />
@@ -116,7 +116,7 @@ export default function ChatList() {
           </h1>
           <button
             onClick={() => setSearchModalOpen(true)}
-            className="px-4 py-2 bg-yellow-400 hover:bg-yellow-500 text-gray-900 rounded-xl font-semibold transition-all flex items-center gap-2 hover:scale-105"
+            className="btn-primary px-4 py-2 font-semibold"
           >
             <Plus className="w-5 h-5" />
             <span className="hidden sm:inline">New Chat</span>
@@ -154,7 +154,7 @@ export default function ChatList() {
             {!searchQuery && (
               <button
                 onClick={() => setSearchModalOpen(true)}
-                className="px-6 py-3 bg-yellow-400 hover:bg-yellow-500 text-gray-900 rounded-xl font-semibold transition-all"
+                className="btn-primary px-6 py-3 font-semibold"
               >
                 Start Your First Chat
               </button>
@@ -164,7 +164,7 @@ export default function ChatList() {
           <div className="divide-y divide-gray-100">
             {filteredConversations.map((conversation) => {
               const isOnline = onlineUsers.has(conversation.otherUser.id);
-              
+
               return (
                 <button
                   key={conversation.id}
@@ -195,9 +195,8 @@ export default function ChatList() {
 
                   <div className="flex-1 min-w-0">
                     <div className="flex items-baseline justify-between gap-2 mb-1">
-                      <h3 className={`font-semibold truncate ${
-                        conversation.unreadCount > 0 ? 'text-gray-900' : 'text-gray-700'
-                      }`}>
+                      <h3 className={`font-semibold truncate ${conversation.unreadCount > 0 ? 'text-gray-900' : 'text-gray-700'
+                        }`}>
                         {conversation.otherUser.name}
                       </h3>
                       {conversation.lastMessage && (
@@ -206,9 +205,8 @@ export default function ChatList() {
                         </span>
                       )}
                     </div>
-                    <p className={`text-sm truncate ${
-                      conversation.unreadCount > 0 ? 'text-gray-900 font-medium' : 'text-gray-600'
-                    }`}>
+                    <p className={`text-sm truncate ${conversation.unreadCount > 0 ? 'text-gray-900 font-medium' : 'text-gray-600'
+                      }`}>
                       {conversation.lastMessage?.text || 'Start a conversation'}
                     </p>
                   </div>

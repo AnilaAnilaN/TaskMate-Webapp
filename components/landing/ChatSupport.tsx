@@ -9,36 +9,36 @@ const ChatSupportSVG = () => (
         <stop offset="100%" stopColor="#F59E0B" />
       </linearGradient>
     </defs>
-    
+
     {/* Chat window */}
-    <rect x="50" y="40" width="300" height="220" rx="15" fill="white" stroke="#E5E7EB" strokeWidth="2"/>
-    
+    <rect x="50" y="40" width="300" height="220" rx="15" fill="white" stroke="#E5E7EB" strokeWidth="2" />
+
     {/* Header */}
-    <rect x="50" y="40" width="300" height="50" rx="15" fill="url(#chatGrad)"/>
-    <circle cx="80" cy="65" r="15" fill="white" opacity="0.9"/>
+    <rect x="50" y="40" width="300" height="50" rx="15" fill="url(#chatGrad)" />
+    <circle cx="80" cy="65" r="15" fill="white" opacity="0.9" />
     <text x="110" y="72" fontSize="18" fill="white" fontWeight="bold">Chat with Sarah</text>
-    <circle cx="320" cy="65" r="5" fill="#34D399"/>
-    
+    <circle cx="320" cy="65" r="5" fill="#34D399" />
+
     {/* Messages */}
-    <rect x="70" y="110" width="180" height="35" rx="8" fill="#F3F4F6"/>
-    <rect x="150" y="160" width="180" height="35" rx="8" fill="#FCD34D"/>
-    <rect x="70" y="210" width="160" height="35" rx="8" fill="#F3F4F6"/>
-    
+    <rect x="70" y="110" width="180" height="35" rx="8" fill="#F3F4F6" />
+    <rect x="150" y="160" width="180" height="35" rx="8" fill="#FCD34D" />
+    <rect x="70" y="210" width="160" height="35" rx="8" fill="#F3F4F6" />
+
     {/* Typing indicator */}
     <circle cx="180" cy="235" r="3" fill="#9CA3AF">
-      <animate attributeName="opacity" values="0.3;1;0.3" dur="1.5s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="0.3;1;0.3" dur="1.5s" repeatCount="indefinite" />
     </circle>
     <circle cx="195" cy="235" r="3" fill="#9CA3AF">
-      <animate attributeName="opacity" values="0.3;1;0.3" dur="1.5s" begin="0.2s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="0.3;1;0.3" dur="1.5s" begin="0.2s" repeatCount="indefinite" />
     </circle>
     <circle cx="210" cy="235" r="3" fill="#9CA3AF">
-      <animate attributeName="opacity" values="0.3;1;0.3" dur="1.5s" begin="0.4s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="0.3;1;0.3" dur="1.5s" begin="0.4s" repeatCount="indefinite" />
     </circle>
-    
+
     {/* User avatar icon */}
-    <circle cx="330" cy="240" r="25" fill="url(#chatGrad)"/>
-    <circle cx="330" cy="235" r="8" fill="white"/>
-    <path d="M 315 255 Q 330 248 345 255" stroke="white" strokeWidth="3" fill="none" strokeLinecap="round"/>
+    <circle cx="330" cy="240" r="25" fill="url(#chatGrad)" />
+    <circle cx="330" cy="235" r="8" fill="white" />
+    <path d="M 315 255 Q 330 248 345 255" stroke="white" strokeWidth="3" fill="none" strokeLinecap="round" />
   </svg>
 );
 
@@ -59,7 +59,7 @@ export default function ChatSupport() {
   ];
 
   return (
-    <section id="chat" className="py-16 md:py-24 bg-gradient-to-br from-yellow-50 to-white">
+    <section id="chat" className="py-16 md:py-24 bg-linear-to-br from-yellow-50 to-white">
       <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8">
         <div className="grid lg:grid-cols-2 gap-8 md:gap-12 items-center">
           {/* SVG Illustration */}
@@ -79,7 +79,7 @@ export default function ChatSupport() {
             </h2>
 
             <p className="text-lg text-gray-600 leading-relaxed">
-              Chat directly with other TaskMate users in real-time. Search for friends or colleagues 
+              Chat directly with other TaskMate users in real-time. Search for friends or colleagues
               by name or email, and start conversations instantly. Perfect for coordinating tasks and staying in sync.
             </p>
 
@@ -101,7 +101,7 @@ export default function ChatSupport() {
             {/* CTA Button */}
             <a
               href="/auth"
-              className="inline-flex items-center gap-2 px-6 py-3 bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-bold rounded-xl transition-all hover:scale-105 shadow-lg"
+              className="btn-primary px-6 py-3 shadow-lg"
             >
               Start Chatting Now
               <MessageCircle className="w-5 h-5" />

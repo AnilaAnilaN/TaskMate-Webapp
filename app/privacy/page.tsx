@@ -12,7 +12,7 @@ export default function PrivacyPolicyPage() {
       
       <div className="min-h-screen bg-gray-50">
         {/* Hero Section */}
-        <div className="bg-gradient-to-br from-yellow-400 to-yellow-500 py-16 md:py-24 mt-16">
+        <div className="bg-linear-to-br from-yellow-400 to-yellow-500 py-16 md:py-24 mt-16">
           <div className="max-w-4xl mx-auto px-4 md:px-6 lg:px-8">
             <div className="flex items-center gap-3 mb-4">
               <Shield className="w-10 h-10 text-gray-900" />

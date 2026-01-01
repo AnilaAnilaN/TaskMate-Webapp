@@ -39,7 +39,7 @@ export default function HowItWorks() {
         {/* Steps */}
         <div className="grid md:grid-cols-3 gap-8 md:gap-12 relative">
           {/* Connection Line (Desktop) */}
-          <div className="hidden md:block absolute top-20 left-1/4 right-1/4 h-0.5 bg-gradient-to-r from-yellow-400 via-yellow-500 to-yellow-400 -z-10"></div>
+          <div className="hidden md:block absolute top-20 left-1/4 right-1/4 h-0.5 bg-linear-to-r from-yellow-400 via-yellow-500 to-yellow-400 -z-10"></div>
 
           {steps.map((step, index) => {
             const Icon = step.icon;

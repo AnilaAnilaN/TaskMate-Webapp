@@ -11,11 +11,11 @@ export class ApiError extends Error {
 
 export const successResponse = async (data: any, status = 200) => {
   const response = NextResponse.json({ success: true, ...data }, { status });
-  
+
   // Copy cookies from the cookie store to the response
   const cookieStore = await cookies();
   const allCookies = cookieStore.getAll();
-  
+
   allCookies.forEach(cookie => {
     response.cookies.set(cookie.name, cookie.value, {
       httpOnly: true,
@@ -25,7 +25,7 @@ export const successResponse = async (data: any, status = 200) => {
       maxAge: 60 * 60 * 24 * 7, // 7 days
     });
   });
-  
+
   return response;
 };
 
@@ -37,6 +37,17 @@ export const errorResponse = (error: any, status = 500) => {
   return NextResponse.json(
     { success: false, error: message },
     { status: error instanceof ApiError ? error.statusCode : status }
+  );
+};
+
+export const validationErrorResponse = (errors: any[]) => {
+  return NextResponse.json(
+    {
+      success: false,
+      error: 'Validation failed',
+      details: errors
+    },
+    { status: 400 }
   );
 };
 

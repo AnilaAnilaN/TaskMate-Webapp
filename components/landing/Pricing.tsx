@@ -67,9 +67,9 @@ export default function Pricing() {
           </div>
 
           {/* Pro Plan - Coming Soon */}
-          <div className="relative p-6 md:p-8 bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl shadow-lg hover:shadow-xl transition-all">
+          <div className="relative p-6 md:p-8 bg-linear-to-br from-gray-900 to-gray-800 rounded-2xl shadow-lg hover:shadow-xl transition-all">
             {/* Coming Soon Badge */}
-            <div className="absolute -top-3 left-6 px-4 py-1 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full text-xs font-bold text-white">
+            <div className="absolute -top-3 left-6 px-4 py-1 bg-linear-to-r from-purple-500 to-pink-500 rounded-full text-xs font-bold text-white">
               COMING SOON
             </div>
 

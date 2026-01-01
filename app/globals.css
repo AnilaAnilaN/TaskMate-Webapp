@@ -1,7 +1,23 @@
-/* app/globals.css */
 @import "tailwindcss";
 
+@theme {
+  --color-brand-yellow: #facc15;
+  --color-brand-yellow-hover: #eab308;
+  --color-brand-red: #ef4444;
+  --color-brand-red-hover: #dc2626;
+}
+
+@layer base {
+
+  *,
+  ::after,
+  ::before {
+    border-color: var(--color-gray-200, currentColor);
+  }
+}
+
 @layer components {
+
   /* Responsive Container Classes */
   .container-responsive {
     @apply px-4 md:px-6 lg:px-8 max-w-7xl mx-auto;
@@ -78,6 +94,44 @@
   /* Touch-friendly tap targets for mobile */
   .tap-target {
     @apply min-h-[44px] min-w-[44px];
+  }
+
+  /* Button Standard Classes */
+  .btn-primary {
+    @apply flex items-center gap-2 px-4 py-2.5 bg-brand-yellow hover:bg-brand-yellow-hover text-gray-900 rounded-xl font-medium transition-all shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .btn-danger {
+    @apply flex items-center gap-2 px-4 py-2.5 bg-brand-red hover:bg-brand-red-hover text-white rounded-xl font-medium transition-all shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .btn-ghost {
+    @apply p-2 hover:bg-gray-100 rounded-lg transition-colors text-gray-600 hover:text-gray-900;
+  }
+
+  .btn-secondary {
+    @apply flex items-center justify-center gap-2 px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-medium transition-all disabled:bg-gray-50 disabled:opacity-50;
+  }
+
+  /* Status/Alert Boxes */
+  .status-box {
+    @apply flex items-start gap-3 p-3 rounded-xl border transition-all;
+  }
+
+  .status-error {
+    @apply bg-red-50 border-red-200 text-red-800;
+  }
+
+  .status-success {
+    @apply bg-green-50 border-green-200 text-green-800;
+  }
+
+  .status-info {
+    @apply bg-blue-50 border-blue-200 text-blue-800;
+  }
+
+  .status-warning {
+    @apply bg-yellow-50 border-yellow-200 text-yellow-800;
   }
 }
 

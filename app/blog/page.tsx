@@ -37,10 +37,10 @@ export default function BlogPage() {
   return (
     <>
       <Header />
-      
+
       <div className="min-h-screen bg-gray-50">
         {/* Hero Header */}
-        <div className="bg-gradient-to-br from-yellow-400 to-yellow-500 py-16 md:py-20 mt-16">
+        <div className="bg-linear-to-br from-yellow-400 to-yellow-500 py-16 md:py-20 mt-16">
           <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8">
             <div className="max-w-3xl">
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-4">
@@ -66,7 +66,7 @@ export default function BlogPage() {
                 <article className="bg-white rounded-3xl overflow-hidden border border-gray-200 hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 group">
                   <div className="grid md:grid-cols-2 gap-0">
                     {/* Image */}
-                    <div className="relative aspect-[4/3] md:aspect-auto overflow-hidden bg-gradient-to-br from-yellow-100 to-yellow-200">
+                    <div className="relative aspect-[4/3] md:aspect-auto overflow-hidden bg-linear-to-br from-yellow-100 to-yellow-200">
                       <Image
                         src={featuredPost.image}
                         alt={featuredPost.title}
@@ -128,7 +128,7 @@ export default function BlogPage() {
                   <Link key={post.id} href={`/blog/${post.id}`}>
                     <article className="bg-white rounded-2xl overflow-hidden border border-gray-200 hover:border-yellow-400 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group h-full flex flex-col">
                       {/* Image */}
-                      <div className="relative aspect-[16/9] overflow-hidden bg-gradient-to-br from-yellow-100 to-yellow-200">
+                      <div className="relative aspect-[16/9] overflow-hidden bg-linear-to-br from-yellow-100 to-yellow-200">
                         <Image
                           src={post.image}
                           alt={post.title}
@@ -196,7 +196,7 @@ export default function BlogPage() {
           )}
         </div>
       </div>
-      
+
       <Footer />
     </>
   );

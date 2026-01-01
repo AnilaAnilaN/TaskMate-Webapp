@@ -42,8 +42,7 @@ class AuthService {
       emailVerified: false,
     });
 
-    console.log('New user created:', email);
-
+    // Send verification email
     try {
       await sendVerificationCode(email, verificationCode);
     } catch (error) {
@@ -132,8 +131,6 @@ class AuthService {
   }
 
   async resetPassword(token: string, userId: string, newPassword: string): Promise<{ message: string }> {
-    console.log('🔵 Reset password called with token:', token, 'userId:', userId);
-    
     const user = await UserModel.findOne({
       _id: new mongoose.Types.ObjectId(userId),
       resetPasswordToken: token,
@@ -141,11 +138,8 @@ class AuthService {
     }).lean();
 
     if (!user) {
-      console.error('❌ Invalid or expired token');
       throw new Error('Invalid or expired reset token');
     }
-
-    console.log('✅ User found:', user.email);
 
     const salt = await bcrypt.genSalt(12);
     const hashedPassword = await bcrypt.hash(newPassword, salt);
@@ -153,13 +147,13 @@ class AuthService {
     const result = await mongoose.connection.collection('users').updateOne(
       { _id: user._id },
       {
-        $set: { 
+        $set: {
           password: hashedPassword,
           updatedAt: new Date()
         },
-        $unset: { 
+        $unset: {
           resetPasswordToken: '',
-          resetPasswordExpiry: '' 
+          resetPasswordExpiry: ''
         },
       }
     );
@@ -168,7 +162,6 @@ class AuthService {
       throw new Error('Failed to update password');
     }
 
-    console.log('✅ Password reset successfully for:', user.email);
     return { message: 'Password reset successfully. You can now log in with your new password.' };
   }
 }

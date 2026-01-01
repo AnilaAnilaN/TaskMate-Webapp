@@ -33,7 +33,7 @@ export default function CareersPage() {
       
       <div className="min-h-screen bg-gray-50">
         {/* Hero Section */}
-        <div className="bg-gradient-to-br from-yellow-400 to-yellow-500 py-16 md:py-24 mt-16">
+        <div className="bg-linear-to-br from-yellow-400 to-yellow-500 py-16 md:py-24 mt-16">
           <div className="max-w-4xl mx-auto px-4 md:px-6 lg:px-8 text-center">
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/20 backdrop-blur-sm rounded-full text-sm font-medium text-gray-900 mb-6">
               <Briefcase className="w-4 h-4" />
@@ -71,7 +71,7 @@ export default function CareersPage() {
                   placeholder="Enter your email"
                   className="flex-1 px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent"
                 />
-                <button className="px-6 py-3 bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-bold rounded-xl transition-all hover:scale-105 whitespace-nowrap inline-flex items-center justify-center gap-2">
+                <button className="btn-primary px-6 py-3 font-bold whitespace-nowrap">
                   <Bell className="w-5 h-5" />
                   Notify Me
                 </button>
@@ -111,7 +111,7 @@ export default function CareersPage() {
           </div>
 
           {/* Stay Connected */}
-          <div className="bg-gradient-to-br from-yellow-50 to-white rounded-3xl border border-yellow-200 p-8 md:p-10 text-center">
+          <div className="bg-linear-to-br from-yellow-50 to-white rounded-3xl border border-yellow-200 p-8 md:p-10 text-center">
             <h3 className="text-2xl font-bold text-gray-900 mb-4">
               Stay Connected
             </h3>
